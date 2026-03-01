@@ -1,5 +1,14 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
+import { execSync } from 'child_process';
+
+function gitCommitShort(): string {
+  try {
+    return execSync('git rev-parse --short HEAD', { encoding: 'utf-8' }).trim();
+  } catch {
+    return 'unknown';
+  }
+}
 
 export default defineConfig(({ mode }) => {
   if (mode === 'playground') {
@@ -17,6 +26,9 @@ export default defineConfig(({ mode }) => {
       base: '/texy-ts-editor/',
       resolve: {
         alias: { '@': resolve(__dirname, 'src') },
+      },
+      define: {
+        __GIT_COMMIT__: JSON.stringify(gitCommitShort()),
       },
       build: {
         outDir: resolve(__dirname, 'demo-dist'),

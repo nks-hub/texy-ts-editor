@@ -141,3 +141,12 @@ document.getElementById('btnRecreate')!.addEventListener('click', () => {
 document.getElementById('btnFullscreen')!.addEventListener('click', () => {
   editor?.toggleFullscreen();
 });
+
+// Inject build commit hash into header
+declare const __GIT_COMMIT__: string;
+if (typeof __GIT_COMMIT__ !== 'undefined') {
+  const commitEl = document.getElementById('buildCommit');
+  const linkEl = document.getElementById('buildCommitLink');
+  if (commitEl) commitEl.textContent = __GIT_COMMIT__;
+  if (linkEl) linkEl.setAttribute('href', `https://github.com/nks-hub/texy-ts-editor/commit/${__GIT_COMMIT__}`);
+}
