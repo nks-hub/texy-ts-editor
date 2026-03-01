@@ -8,6 +8,9 @@ export { KeyboardManager } from './core/KeyboardManager';
 export { ToolbarBuilder } from './core/ToolbarBuilder';
 export { DialogManager } from './core/DialogManager';
 
+// Parser
+export { TexyParser } from './parser';
+
 // i18n
 export { getStrings, registerLanguage, cs, en } from './i18n';
 
@@ -30,6 +33,8 @@ export type {
   UploadResult,
   MentionSource,
   MentionItem,
+  TexyParseRule,
+  TexyParserOptions,
 } from './types';
 
 // CSS (side-effect import for bundlers)

@@ -254,3 +254,21 @@ export interface SelectionState {
   before: string;
   after: string;
 }
+
+// ── Parser ──────────────────────────────────────────────────────
+
+export interface TexyParseRule {
+  name: string;
+  /** Priority (lower = runs first) */
+  priority: number;
+  /** Process block-level content */
+  block?: (text: string) => string;
+  /** Process inline content */
+  inline?: (text: string) => string;
+}
+
+export interface TexyParserOptions {
+  rules?: TexyParseRule[];
+  enableTypography?: boolean;
+  enableAutolinks?: boolean;
+}
