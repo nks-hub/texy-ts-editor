@@ -457,15 +457,11 @@ export class TexyParser {
     // 2. Inline code: `code` — extract to protect from further parsing
     src = src.replace(/`([^`]+)`/g, (_m, content) => ph(`<code>${this.escapeHtml(content)}</code>`));
 
-    // 3. Images: [* src .(alt) align] — extract before italic (* conflicts)
+    // 3. Images: [* src 200x100 .(alt) align]:link *** caption
     src = src.replace(
-      /\[\*\s+(\S+?)(?:\s+\.\(([^)]*)\))?\s*([<>*]?)\s*\]/g,
-      (_m, imgSrc, alt, align) => {
-        let style = '';
-        if (align === '<') style = ' style="float:left"';
-        else if (align === '>') style = ' style="float:right"';
-        const altAttr = alt ? ` alt="${this.escapeHtml(alt)}"` : ' alt=""';
-        return ph(`<img src="${this.escapeHtml(imgSrc)}"${altAttr}${style}>`);
+      /\[\*\s+([\s\S]*?)\s*([<>*]|<>)\](?::(\S+))?(?:\s+\*{3}\s+(.+))?/g,
+      (_m, inner, align, linkUrl, caption) => {
+        return ph(this.buildImageTag(inner.trim(), align, linkUrl, caption));
       },
     );
 
@@ -655,6 +651,68 @@ export class TexyParser {
     if (titleMatch) attrs.push(`title="${this.escapeHtml(titleMatch[1])}"`);
 
     return attrs.length > 0 ? ' ' + attrs.join(' ') : '';
+  }
+
+  // ── Image builder ─────────────────────────────────────────
+
+  private buildImageTag(inner: string, align: string, linkUrl?: string, caption?: string): string {
+    // inner = "url 200x100 .(alt text)[class]"
+    // Extract parts from inner content
+    let remaining = inner;
+
+    // Extract modifier: .(alt text) and/or .[class]
+    let alt = '';
+    const altMatch = remaining.match(/\.\(([^)]*)\)/);
+    if (altMatch) {
+      alt = altMatch[1];
+      remaining = remaining.replace(altMatch[0], '').trim();
+    }
+
+    let cls = '';
+    const clsMatch = remaining.match(/\.\[([^\]]*)\]/);
+    if (clsMatch) {
+      cls = clsMatch[1];
+      remaining = remaining.replace(clsMatch[0], '').trim();
+    }
+
+    // Remaining tokens: url [dimensions]
+    const tokens = remaining.split(/\s+/);
+    const imgSrc = tokens[0] || '';
+    let width = '';
+    let height = '';
+
+    for (let i = 1; i < tokens.length; i++) {
+      const t = tokens[i];
+      // WxH format
+      const dimMatch = t.match(/^(\d+)x(\d+)$/);
+      if (dimMatch) { width = dimMatch[1]; height = dimMatch[2]; continue; }
+      // Width only
+      if (/^\d+$/.test(t)) { width = t; continue; }
+      // ?xH format
+      const hMatch = t.match(/^\?x(\d+)$/);
+      if (hMatch) { height = hMatch[1]; continue; }
+    }
+
+    // Build <img> tag
+    const attrs: string[] = [`src="${this.escapeHtml(imgSrc)}"`, `alt="${this.escapeHtml(alt)}"`];
+    if (width) attrs.push(`width="${width}"`);
+    if (height) attrs.push(`height="${height}"`);
+    if (cls) attrs.push(`class="${this.escapeHtml(cls)}"`);
+
+    if (align === '<') attrs.push('style="float:left;margin:0 1em 1em 0"');
+    else if (align === '>') attrs.push('style="float:right;margin:0 0 1em 1em"');
+
+    let tag = `<img ${attrs.join(' ')}>`;
+
+    if (linkUrl) {
+      tag = `<a href="${this.escapeHtml(linkUrl)}">${tag}</a>`;
+    }
+
+    if (caption) {
+      tag = `<figure>${tag}<figcaption>${this.parseInline(caption)}</figcaption></figure>`;
+    }
+
+    return tag;
   }
 
   // ── Utilities ─────────────────────────────────────────────
