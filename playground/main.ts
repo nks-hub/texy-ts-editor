@@ -57,6 +57,7 @@ function createEditor(theme: string = 'dark', lang: string = 'cs') {
     bottomLeftToolbar: ['edit', 'preview', 'splitView'],
     bottomRightEditToolbar: ['undo', 'redo', 'fullscreen'],
     bottomRightPreviewToolbar: [],
+    imageLinkAutoFill: true,
   });
 
   // Subscribe to events
