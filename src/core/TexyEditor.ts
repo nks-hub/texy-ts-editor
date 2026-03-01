@@ -480,6 +480,7 @@ export class TexyEditor implements TexyEditorAPI {
       width: 400,
       content,
       onSubmit: () => {
+        if (!this.validateRequired(urlInput)) return false;
         this.formatter.link(urlInput.value, textInput.value || undefined);
         this.focus();
       },
@@ -536,6 +537,7 @@ export class TexyEditor implements TexyEditorAPI {
       width: 460,
       content,
       onSubmit: () => {
+        if (!this.validateRequired(urlInput)) return false;
         const align = alignSelect.value as '<' | '>' | '<>' | '*';
         const w = parseInt(widthInput.value) || undefined;
         const h = parseInt(heightInput.value) || undefined;
@@ -727,9 +729,23 @@ export class TexyEditor implements TexyEditorAPI {
     input.type = type;
     input.className = 'te-form-input';
     input.value = defaultValue;
+    input.addEventListener('input', () => input.classList.remove('te-form-input-error'));
     wrapper.appendChild(input);
 
     container.appendChild(wrapper);
     return input;
+  }
+
+  private validateRequired(...inputs: HTMLInputElement[]): boolean {
+    let valid = true;
+    for (const input of inputs) {
+      const empty = !input.value.trim();
+      input.classList.toggle('te-form-input-error', empty);
+      if (empty) {
+        valid = false;
+        input.focus();
+      }
+    }
+    return valid;
   }
 }

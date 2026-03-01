@@ -4,7 +4,7 @@ export interface DialogConfig {
   title: string;
   width?: number;
   content: HTMLElement;
-  onSubmit: () => void;
+  onSubmit: () => boolean | void;
   onCancel?: () => void;
 }
 
@@ -85,7 +85,7 @@ export class DialogManager {
     submitBtn.className = 'te-btn te-dialog-submit';
     submitBtn.textContent = this.strings.ok;
     submitBtn.addEventListener('click', () => {
-      config.onSubmit();
+      if (config.onSubmit() === false) return;
       this.close(name);
     });
     footer.appendChild(submitBtn);
