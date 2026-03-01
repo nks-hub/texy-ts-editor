@@ -549,6 +549,12 @@
   box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.15);
 }
 
+.te-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
 /* ── Color Grid ────────────────────────────────────────────── */
 
 .te-color-grid {

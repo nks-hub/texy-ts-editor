@@ -165,6 +165,10 @@ export interface TexyEditorStrings {
   imageUrl: string;
   imageAlt: string;
   imageAlign: string;
+  imageWidth: string;
+  imageHeight: string;
+  imageCaption: string;
+  imageLink: string;
   unorderedList: string;
   orderedList: string;
   blockquote: string;

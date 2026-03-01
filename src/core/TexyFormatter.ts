@@ -93,7 +93,12 @@ export class TexyFormatter {
 
   // ── Images ────────────────────────────────────────────────────
 
-  image(src: string, alt?: string, align?: '<' | '>' | '<>' | '*', caption?: string): void {
+  image(
+    src: string,
+    alt?: string,
+    align?: '<' | '>' | '<>' | '*',
+    options?: { width?: number; height?: number; caption?: string; link?: string },
+  ): void {
     let markup = '';
 
     // Center alignment needs paragraph modifier
@@ -102,10 +107,26 @@ export class TexyFormatter {
       align = '*';
     }
 
-    markup += '[* ' + src + ' ';
+    markup += '[* ' + src;
+
+    // Dimensions: 150x100, 150, ?x100
+    if (options?.width && options?.height) {
+      markup += ' ' + options.width + 'x' + options.height;
+    } else if (options?.width) {
+      markup += ' ' + options.width;
+    } else if (options?.height) {
+      markup += ' ?x' + options.height;
+    }
+
+    markup += ' ';
     if (alt) markup += `.( ${alt}) `;
     markup += (align || '*') + ']';
-    if (caption) markup += ' *** ' + caption;
+
+    // Clickable image link
+    if (options?.link) markup += ':' + options.link;
+
+    // Figure caption
+    if (options?.caption) markup += ' *** ' + options.caption;
 
     this.selection.replace(markup);
   }

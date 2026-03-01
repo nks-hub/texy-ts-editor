@@ -493,6 +493,16 @@ export class TexyEditor implements TexyEditorAPI {
     const urlInput = this.createFormField(content, this.strings.imageUrl, 'url', '');
     const altInput = this.createFormField(content, this.strings.imageAlt, 'text', '');
 
+    // Dimensions row
+    const dimRow = document.createElement('div');
+    dimRow.className = 'te-form-row';
+    const widthInput = this.createFormField(dimRow, this.strings.imageWidth, 'number', '');
+    widthInput.min = '0';
+    const heightInput = this.createFormField(dimRow, this.strings.imageHeight, 'number', '');
+    heightInput.min = '0';
+    content.appendChild(dimRow);
+
+    // Alignment
     const alignLabel = document.createElement('label');
     alignLabel.className = 'te-form-label';
     alignLabel.textContent = this.strings.imageAlign;
@@ -508,13 +518,23 @@ export class TexyEditor implements TexyEditorAPI {
     }
     content.appendChild(alignSelect);
 
+    const linkInput = this.createFormField(content, this.strings.imageLink, 'url', '');
+    const captionInput = this.createFormField(content, this.strings.imageCaption, 'text', '');
+
     this.dialogManager.open('image', {
       title: this.strings.image,
-      width: 420,
+      width: 460,
       content,
       onSubmit: () => {
         const align = alignSelect.value as '<' | '>' | '<>' | '*';
-        this.formatter.image(urlInput.value, altInput.value || undefined, align);
+        const w = parseInt(widthInput.value) || undefined;
+        const h = parseInt(heightInput.value) || undefined;
+        this.formatter.image(urlInput.value, altInput.value || undefined, align, {
+          width: w,
+          height: h,
+          link: linkInput.value || undefined,
+          caption: captionInput.value || undefined,
+        });
         this.focus();
       },
     });
