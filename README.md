@@ -3,6 +3,8 @@
 [![Build Status](https://github.com/nks-hub/texy-ts-editor/actions/workflows/build.yml/badge.svg)](https://github.com/nks-hub/texy-ts-editor/actions)
 [![npm version](https://img.shields.io/npm/v/@nks-hub/texy-editor.svg)](https://www.npmjs.com/package/@nks-hub/texy-editor)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-3178c6.svg)](https://www.typescriptlang.org/)
+[![Tests](https://img.shields.io/badge/tests-229%20passed-brightgreen.svg)](https://github.com/nks-hub/texy-ts-editor/actions)
 
 > Modern TypeScript Texy markup editor with configurable toolbar, client-side parser, live preview, theming, and plugin system. Zero jQuery dependency. Spiritual successor to [Texyla](https://github.com/janmarek/Texyla).
 
@@ -246,21 +248,29 @@ npm run test:watch
 
 ---
 
+## Contributing
+
+Contributions are welcome! For major changes, please open an issue first.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'feat: description'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## Support
+
+- 📧 **Email:** dev@nks-hub.cz
+- 🐛 **Bug reports:** [GitHub Issues](https://github.com/nks-hub/texy-ts-editor/issues)
+- 📖 **Texy syntax:** [texy.nette.org](https://texy.nette.org/cs/syntax)
+- 🎮 **Live demo:** [nks-hub.github.io/texy-ts-editor](https://nks-hub.github.io/texy-ts-editor/)
+
 ## License
 
-MIT License — see [LICENSE](LICENSE) file for details.
+MIT License — see [LICENSE](LICENSE) for details.
 
 ---
 
-## Links
-
-- [Texy Markup Language](https://texy.info) — The original Texy PHP library by David Grudl
-- [Texyla](https://github.com/janmarek/Texyla) — The original jQuery-based Texy editor (archived)
-- [Nette Framework](https://nette.org) — PHP framework commonly used with Texy
-- [GitHub Repository](https://github.com/nks-hub/texy-ts-editor)
-- [npm Package](https://www.npmjs.com/package/@nks-hub/texy-editor)
-- [Issue Tracker](https://github.com/nks-hub/texy-ts-editor/issues)
-
----
-
-**Built for Texy** — A modern successor to Texyla, built from scratch in TypeScript.
+<p align="center">
+  Made with ❤️ by <a href="https://github.com/nks-hub">NKS Hub</a>
+</p>
