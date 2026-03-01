@@ -49,6 +49,8 @@ export interface TexyEditorOptions {
   plugins?: TexyPlugin[];
   /** ARIA label for the editor */
   ariaLabel?: string;
+  /** Auto-fill image link with image URL (makes images clickable) */
+  imageLinkAutoFill?: boolean;
 }
 
 // ── Toolbar ─────────────────────────────────────────────────────

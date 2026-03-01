@@ -521,6 +521,16 @@ export class TexyEditor implements TexyEditorAPI {
     const linkInput = this.createFormField(content, this.strings.imageLink, 'url', '');
     const captionInput = this.createFormField(content, this.strings.imageCaption, 'text', '');
 
+    // Auto-fill link from image URL when option is enabled
+    if (this.options.imageLinkAutoFill) {
+      urlInput.addEventListener('input', () => {
+        if (!linkInput.value || linkInput.value === linkInput.dataset.autoFilled) {
+          linkInput.value = urlInput.value;
+          linkInput.dataset.autoFilled = urlInput.value;
+        }
+      });
+    }
+
     this.dialogManager.open('image', {
       title: this.strings.image,
       width: 460,
