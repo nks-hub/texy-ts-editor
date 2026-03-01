@@ -202,6 +202,7 @@ export interface TexyEditorStrings {
   ok: string;
   cancel: string;
   close: string;
+  fieldRequired: string;
 }
 
 // ── Public API ──────────────────────────────────────────────────

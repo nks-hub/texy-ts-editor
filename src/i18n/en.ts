@@ -55,4 +55,5 @@ export const en: TexyEditorStrings = {
   ok: 'OK',
   cancel: 'Cancel',
   close: 'Close',
+  fieldRequired: 'This field is required',
 };

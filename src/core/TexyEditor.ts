@@ -729,7 +729,11 @@ export class TexyEditor implements TexyEditorAPI {
     input.type = type;
     input.className = 'te-form-input';
     input.value = defaultValue;
-    input.addEventListener('input', () => input.classList.remove('te-form-input-error'));
+    input.addEventListener('input', () => {
+      input.classList.remove('te-form-input-error');
+      const errorEl = wrapper.querySelector('.te-form-error');
+      if (errorEl) errorEl.remove();
+    });
     wrapper.appendChild(input);
 
     container.appendChild(wrapper);
@@ -741,6 +745,17 @@ export class TexyEditor implements TexyEditorAPI {
     for (const input of inputs) {
       const empty = !input.value.trim();
       input.classList.toggle('te-form-input-error', empty);
+      const wrapper = input.closest('.te-form-group');
+      if (wrapper) {
+        const existing = wrapper.querySelector('.te-form-error');
+        if (existing) existing.remove();
+        if (empty) {
+          const errorEl = document.createElement('span');
+          errorEl.className = 'te-form-error';
+          errorEl.textContent = this.strings.fieldRequired;
+          wrapper.appendChild(errorEl);
+        }
+      }
       if (empty) {
         valid = false;
         input.focus();

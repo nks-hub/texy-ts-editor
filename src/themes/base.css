@@ -554,6 +554,13 @@
   box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.2);
 }
 
+.te-form-error {
+  display: block;
+  color: #dc3545;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
 .te-form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;

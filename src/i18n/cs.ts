@@ -55,4 +55,5 @@ export const cs: TexyEditorStrings = {
   ok: 'OK',
   cancel: 'Zrušit',
   close: 'Zavřít',
+  fieldRequired: 'Toto pole je povinné',
 };
