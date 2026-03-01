@@ -269,6 +269,31 @@ export interface TexyParseRule {
 
 export interface TexyParserOptions {
   rules?: TexyParseRule[];
+  plugins?: TexyParserPlugin[];
   enableTypography?: boolean;
   enableAutolinks?: boolean;
+}
+
+/**
+ * Parser plugin interface for extending Texy syntax.
+ * Plugins can hook into multiple stages of the parsing pipeline.
+ */
+export interface TexyParserPlugin {
+  name: string;
+  /**
+   * Preprocess source text before any parsing (raw Texy input).
+   * Useful for converting custom syntax to standard Texy or placeholders.
+   */
+  preprocess?: (text: string) => string;
+  /**
+   * Process inline content during inline parsing phase.
+   * Receives text with placeholders already extracted (noTexy, code, images, links).
+   * Use the provided placeholder function to protect generated HTML.
+   */
+  processInline?: (text: string, placeholder: (html: string) => string) => string;
+  /**
+   * Postprocess final HTML output.
+   * Useful for expanding placeholders, adding wrappers, or final transformations.
+   */
+  postprocess?: (html: string) => string;
 }

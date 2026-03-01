@@ -1,18 +1,37 @@
-import type { TexyParserOptions } from '../types';
+import type { TexyParserOptions, TexyParserPlugin } from '../types';
 
 /**
  * Client-side Texy markup parser.
  * Converts Texy source text to HTML for live preview.
+ * Supports plugin system for custom syntax extensions.
  */
 export class TexyParser {
   private options: Required<TexyParserOptions>;
+  private plugins: TexyParserPlugin[];
 
   constructor(options: TexyParserOptions = {}) {
     this.options = {
       rules: options.rules ?? [],
+      plugins: options.plugins ?? [],
       enableTypography: options.enableTypography ?? true,
       enableAutolinks: options.enableAutolinks ?? true,
     };
+    this.plugins = this.options.plugins;
+  }
+
+  /** Add a plugin at runtime */
+  addPlugin(plugin: TexyParserPlugin): void {
+    this.plugins.push(plugin);
+  }
+
+  /** Remove a plugin by name */
+  removePlugin(name: string): void {
+    this.plugins = this.plugins.filter((p) => p.name !== name);
+  }
+
+  /** Get registered plugins */
+  getPlugins(): readonly TexyParserPlugin[] {
+    return this.plugins;
   }
 
   parse(input: string): string {
@@ -20,6 +39,13 @@ export class TexyParser {
 
     // Normalize line endings
     let text = input.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+    // Run plugin preprocessors
+    for (const plugin of this.plugins) {
+      if (plugin.preprocess) {
+        text = plugin.preprocess(text);
+      }
+    }
 
     // Apply custom block rules (lowest priority number first)
     const blockRules = this.options.rules
@@ -30,7 +56,14 @@ export class TexyParser {
     }
 
     // Process blocks
-    const html = this.parseBlocks(text);
+    let html = this.parseBlocks(text);
+
+    // Run plugin postprocessors
+    for (const plugin of this.plugins) {
+      if (plugin.postprocess) {
+        html = plugin.postprocess(html);
+      }
+    }
 
     return html;
   }
@@ -442,6 +475,13 @@ export class TexyParser {
       .sort((a, b) => a.priority - b.priority);
     for (const rule of inlineRules) {
       src = rule.inline!(src);
+    }
+
+    // 4b. Run plugin inline processors (with access to placeholder function)
+    for (const plugin of this.plugins) {
+      if (plugin.processInline) {
+        src = plugin.processInline(src, ph);
+      }
     }
 
     // 5. Links: "text":URL — extract before HTML escaping (quotes are significant)

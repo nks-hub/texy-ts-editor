@@ -10,6 +10,13 @@ export { DialogManager } from './core/DialogManager';
 
 // Parser
 export { TexyParser } from './parser';
+export {
+  youtubePlugin,
+  smileyPlugin,
+  linkRedirectPlugin,
+  bbcodePlugin,
+  imageEmbedPlugin,
+} from './parser';
 
 // i18n
 export { getStrings, registerLanguage, cs, en } from './i18n';
@@ -35,6 +42,7 @@ export type {
   MentionItem,
   TexyParseRule,
   TexyParserOptions,
+  TexyParserPlugin,
 } from './types';
 
 // CSS (side-effect import for bundlers)
