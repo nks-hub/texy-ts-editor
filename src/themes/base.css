@@ -1,0 +1,629 @@
+/* ═══════════════════════════════════════════════════════════════
+   @nks-hub/texy-editor — Base Theme (CSS Custom Properties)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── CSS Custom Properties (override to customize) ─────────── */
+
+.te-editor {
+  /* Surface colors */
+  --te-bg: #ffffff;
+  --te-bg-secondary: #f8f9fa;
+  --te-bg-hover: #e9ecef;
+  --te-bg-active: #dee2e6;
+
+  /* Text colors */
+  --te-text: #212529;
+  --te-text-secondary: #6c757d;
+  --te-text-muted: #adb5bd;
+
+  /* Border */
+  --te-border-color: #dee2e6;
+  --te-border-radius: 8px;
+  --te-border-radius-sm: 4px;
+
+  /* Accent */
+  --te-accent: #0d6efd;
+  --te-accent-hover: #0b5ed7;
+  --te-accent-text: #ffffff;
+
+  /* Toolbar */
+  --te-toolbar-bg: var(--te-bg-secondary);
+  --te-toolbar-border: var(--te-border-color);
+  --te-toolbar-gap: 2px;
+  --te-btn-size: 32px;
+  --te-btn-radius: var(--te-border-radius-sm);
+
+  /* Textarea */
+  --te-textarea-bg: var(--te-bg);
+  --te-textarea-text: var(--te-text);
+  --te-textarea-font: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+  --te-textarea-font-size: 14px;
+  --te-textarea-line-height: 1.6;
+  --te-textarea-padding: 12px 16px;
+  --te-textarea-min-height: 200px;
+
+  /* Preview */
+  --te-preview-bg: var(--te-bg);
+  --te-preview-text: var(--te-text);
+  --te-preview-padding: 16px 20px;
+  --te-preview-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --te-preview-font-size: 15px;
+
+  /* Dialog */
+  --te-dialog-bg: var(--te-bg);
+  --te-dialog-backdrop: rgba(0, 0, 0, 0.5);
+  --te-dialog-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  --te-dialog-radius: 12px;
+  --te-dialog-width: 420px;
+
+  /* Transitions */
+  --te-transition: 150ms ease;
+
+  /* Focus */
+  --te-focus-ring: 0 0 0 3px rgba(13, 110, 253, 0.25);
+
+  /* Separator */
+  --te-separator-color: var(--te-border-color);
+
+  /* Scrollbar */
+  --te-scrollbar-thumb: var(--te-bg-active);
+  --te-scrollbar-track: transparent;
+}
+
+/* ── Dark Theme ────────────────────────────────────────────── */
+
+.te-theme-dark,
+[data-te-theme="dark"] {
+  --te-bg: #1e1e2e;
+  --te-bg-secondary: #252536;
+  --te-bg-hover: #313244;
+  --te-bg-active: #45475a;
+
+  --te-text: #cdd6f4;
+  --te-text-secondary: #a6adc8;
+  --te-text-muted: #6c7086;
+
+  --te-border-color: #45475a;
+
+  --te-accent: #89b4fa;
+  --te-accent-hover: #74c7ec;
+  --te-accent-text: #1e1e2e;
+
+  --te-dialog-backdrop: rgba(0, 0, 0, 0.7);
+  --te-dialog-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+
+  --te-scrollbar-thumb: #45475a;
+}
+
+/* ── Main Container ────────────────────────────────────────── */
+
+.te-editor {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--te-border-color);
+  border-radius: var(--te-border-radius);
+  background: var(--te-bg);
+  color: var(--te-text);
+  font-family: var(--te-preview-font);
+  overflow: hidden;
+  transition: box-shadow var(--te-transition);
+}
+
+.te-editor:focus-within {
+  box-shadow: var(--te-focus-ring);
+}
+
+/* ── Fullscreen ────────────────────────────────────────────── */
+
+.te-editor.te-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  border-radius: 0;
+  border: none;
+}
+
+.te-editor.te-fullscreen .te-textarea {
+  min-height: 0;
+  flex: 1;
+}
+
+/* ── Toolbar ───────────────────────────────────────────────── */
+
+.te-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--te-toolbar-gap);
+  padding: 4px 6px;
+  background: var(--te-toolbar-bg);
+  border-bottom: 1px solid var(--te-toolbar-border);
+  min-height: 40px;
+}
+
+/* ── Toolbar Buttons ───────────────────────────────────────── */
+
+.te-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--te-btn-size);
+  height: var(--te-btn-size);
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--te-btn-radius);
+  background: transparent;
+  color: var(--te-text-secondary);
+  cursor: pointer;
+  font-size: 13px;
+  font-family: inherit;
+  line-height: 1;
+  transition:
+    background var(--te-transition),
+    color var(--te-transition),
+    border-color var(--te-transition);
+  user-select: none;
+}
+
+.te-btn:hover {
+  background: var(--te-bg-hover);
+  color: var(--te-text);
+}
+
+.te-btn:active {
+  background: var(--te-bg-active);
+}
+
+.te-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--te-focus-ring);
+}
+
+.te-btn.te-btn-active {
+  background: var(--te-accent);
+  color: var(--te-accent-text);
+  border-color: var(--te-accent);
+}
+
+.te-icon {
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+/* ── Separator ─────────────────────────────────────────────── */
+
+.te-separator {
+  width: 1px;
+  height: 20px;
+  margin: 0 2px;
+  background: var(--te-separator-color);
+  flex-shrink: 0;
+}
+
+/* ── Dropdown ──────────────────────────────────────────────── */
+
+.te-dropdown {
+  position: relative;
+}
+
+.te-dropdown-trigger::after {
+  content: '▾';
+  font-size: 8px;
+  margin-left: 2px;
+  opacity: 0.6;
+}
+
+.te-dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 100;
+  min-width: 160px;
+  padding: 4px;
+  background: var(--te-bg);
+  border: 1px solid var(--te-border-color);
+  border-radius: var(--te-border-radius-sm);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.te-dropdown-open .te-dropdown-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.te-dropdown-menu .te-btn {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 4px 8px;
+  font-size: 13px;
+}
+
+/* ── Edit Area ─────────────────────────────────────────────── */
+
+.te-edit-area {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.te-textarea {
+  display: block;
+  width: 100%;
+  min-height: var(--te-textarea-min-height);
+  padding: var(--te-textarea-padding);
+  border: none;
+  outline: none;
+  background: var(--te-textarea-bg);
+  color: var(--te-textarea-text);
+  font-family: var(--te-textarea-font);
+  font-size: var(--te-textarea-font-size);
+  line-height: var(--te-textarea-line-height);
+  resize: vertical;
+  tab-size: 4;
+}
+
+.te-textarea::placeholder {
+  color: var(--te-text-muted);
+}
+
+/* Custom scrollbar */
+.te-textarea::-webkit-scrollbar {
+  width: 8px;
+}
+.te-textarea::-webkit-scrollbar-thumb {
+  background: var(--te-scrollbar-thumb);
+  border-radius: 4px;
+}
+.te-textarea::-webkit-scrollbar-track {
+  background: var(--te-scrollbar-track);
+}
+
+/* ── Preview Area ──────────────────────────────────────────── */
+
+.te-preview-area {
+  flex: 1;
+  min-height: var(--te-textarea-min-height);
+  overflow-y: auto;
+}
+
+.te-preview-content {
+  padding: var(--te-preview-padding);
+  font-family: var(--te-preview-font);
+  font-size: var(--te-preview-font-size);
+  color: var(--te-preview-text);
+  line-height: 1.6;
+}
+
+.te-preview-content h1 { font-size: 2em; margin: 0.5em 0; }
+.te-preview-content h2 { font-size: 1.5em; margin: 0.5em 0; }
+.te-preview-content h3 { font-size: 1.25em; margin: 0.5em 0; }
+.te-preview-content h4 { font-size: 1.1em; margin: 0.5em 0; }
+.te-preview-content p { margin: 0.5em 0; }
+.te-preview-content ul,
+.te-preview-content ol { padding-left: 1.5em; }
+.te-preview-content blockquote {
+  margin: 0.5em 0;
+  padding: 0.5em 1em;
+  border-left: 3px solid var(--te-accent);
+  background: var(--te-bg-secondary);
+  border-radius: var(--te-border-radius-sm);
+}
+.te-preview-content code {
+  padding: 2px 6px;
+  background: var(--te-bg-secondary);
+  border-radius: 3px;
+  font-family: var(--te-textarea-font);
+  font-size: 0.9em;
+}
+.te-preview-content pre {
+  padding: 12px 16px;
+  background: var(--te-bg-secondary);
+  border-radius: var(--te-border-radius-sm);
+  overflow-x: auto;
+}
+.te-preview-content pre code {
+  padding: 0;
+  background: none;
+}
+.te-preview-content a {
+  color: var(--te-accent);
+  text-decoration: underline;
+}
+.te-preview-content hr {
+  border: none;
+  border-top: 1px solid var(--te-border-color);
+  margin: 1em 0;
+}
+.te-preview-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--te-border-radius-sm);
+}
+.te-preview-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.5em 0;
+}
+.te-preview-content th,
+.te-preview-content td {
+  border: 1px solid var(--te-border-color);
+  padding: 6px 10px;
+  text-align: left;
+}
+.te-preview-content th {
+  background: var(--te-bg-secondary);
+  font-weight: 600;
+}
+
+.te-preview-empty,
+.te-preview-loading {
+  color: var(--te-text-muted);
+  font-style: italic;
+}
+
+.te-preview-error {
+  color: #e74c3c;
+  font-style: italic;
+}
+
+/* ── Split View ────────────────────────────────────────────── */
+
+.te-view-split {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.te-view-split .te-toolbar {
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.te-view-split .te-edit-area,
+.te-view-split .te-preview-area {
+  width: 50%;
+  flex: 0 0 50%;
+}
+
+.te-view-split .te-preview-area {
+  border-left: 1px solid var(--te-border-color);
+}
+
+.te-view-split .te-bottom-bar {
+  width: 100%;
+  flex-shrink: 0;
+}
+
+/* ── Bottom Bar ────────────────────────────────────────────── */
+
+.te-bottom-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 6px;
+  background: var(--te-toolbar-bg);
+  border-top: 1px solid var(--te-toolbar-border);
+  min-height: 36px;
+}
+
+.te-bottom-left,
+.te-bottom-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.te-bottom-left .te-btn,
+.te-bottom-right .te-btn {
+  width: auto;
+  padding: 4px 10px;
+  font-size: 12px;
+  gap: 4px;
+}
+
+/* ── Dialog ────────────────────────────────────────────────── */
+
+.te-dialog {
+  position: fixed;
+  max-width: 90vw;
+  max-height: 80vh;
+  padding: 0;
+  border: 1px solid var(--te-border-color);
+  border-radius: var(--te-dialog-radius);
+  background: var(--te-dialog-bg);
+  color: var(--te-text);
+  box-shadow: var(--te-dialog-shadow);
+  overflow: hidden;
+}
+
+.te-dialog::backdrop {
+  background: var(--te-dialog-backdrop);
+}
+
+.te-dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--te-border-color);
+}
+
+.te-dialog-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.te-dialog-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--te-border-radius-sm);
+  background: transparent;
+  color: var(--te-text-secondary);
+  font-size: 20px;
+  cursor: pointer;
+  transition: background var(--te-transition);
+}
+
+.te-dialog-close:hover {
+  background: var(--te-bg-hover);
+  color: var(--te-text);
+}
+
+.te-dialog-body {
+  padding: 16px;
+  overflow-y: auto;
+  max-height: 60vh;
+}
+
+.te-dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--te-border-color);
+}
+
+.te-dialog-submit {
+  background: var(--te-accent) !important;
+  color: var(--te-accent-text) !important;
+  border-color: var(--te-accent) !important;
+  padding: 6px 16px !important;
+  width: auto !important;
+}
+
+.te-dialog-submit:hover {
+  background: var(--te-accent-hover) !important;
+}
+
+.te-dialog-cancel {
+  padding: 6px 16px !important;
+  width: auto !important;
+}
+
+/* ── Form Fields in Dialogs ────────────────────────────────── */
+
+.te-dialog-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.te-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.te-form-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--te-text-secondary);
+}
+
+.te-form-input {
+  padding: 8px 12px;
+  border: 1px solid var(--te-border-color);
+  border-radius: var(--te-border-radius-sm);
+  background: var(--te-bg);
+  color: var(--te-text);
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color var(--te-transition), box-shadow var(--te-transition);
+}
+
+.te-form-input:focus {
+  border-color: var(--te-accent);
+  box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.15);
+}
+
+/* ── Color Grid ────────────────────────────────────────────── */
+
+.te-color-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+
+.te-color-swatch {
+  width: 100%;
+  aspect-ratio: 1;
+  border: 2px solid transparent;
+  border-radius: var(--te-border-radius-sm);
+  cursor: pointer;
+  transition: border-color var(--te-transition), transform var(--te-transition);
+}
+
+.te-color-swatch:hover {
+  border-color: var(--te-text);
+  transform: scale(1.1);
+}
+
+/* ── Symbol Grid ───────────────────────────────────────────── */
+
+.te-symbol-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 4px;
+}
+
+.te-symbol-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1;
+  border: 1px solid var(--te-border-color);
+  border-radius: var(--te-border-radius-sm);
+  background: var(--te-bg);
+  color: var(--te-text);
+  font-size: 16px;
+  cursor: pointer;
+  transition: background var(--te-transition);
+}
+
+.te-symbol-btn:hover {
+  background: var(--te-bg-hover);
+}
+
+/* ── Responsive ────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .te-toolbar {
+    gap: 1px;
+    padding: 2px 4px;
+  }
+
+  .te-btn {
+    --te-btn-size: 28px;
+  }
+
+  .te-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .te-separator {
+    height: 16px;
+    margin: 0 1px;
+  }
+
+  .te-view-split .te-edit-area,
+  .te-view-split .te-preview-area {
+    width: 100%;
+    flex: 0 0 100%;
+  }
+
+  .te-view-split .te-preview-area {
+    border-left: none;
+    border-top: 1px solid var(--te-border-color);
+  }
+}

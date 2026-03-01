@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Texy Editor — Playground</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0f0f23;
+      color: #e0e0e0;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .playground {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .playground-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .playground-header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #89b4fa, #f38ba8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+    .playground-header p {
+      color: #a6adc8;
+      font-size: 14px;
+    }
+
+    /* Controls panel */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding: 16px;
+      background: #1e1e2e;
+      border: 1px solid #45475a;
+      border-radius: 12px;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .control-group label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #a6adc8;
+    }
+
+    .control-group select,
+    .control-group input {
+      padding: 6px 10px;
+      border: 1px solid #45475a;
+      border-radius: 6px;
+      background: #252536;
+      color: #cdd6f4;
+      font-size: 13px;
+      font-family: inherit;
+    }
+
+    .control-group button {
+      padding: 6px 14px;
+      border: 1px solid #45475a;
+      border-radius: 6px;
+      background: #313244;
+      color: #cdd6f4;
+      cursor: pointer;
+      font-size: 13px;
+      font-family: inherit;
+      transition: background 150ms;
+    }
+
+    .control-group button:hover {
+      background: #45475a;
+    }
+
+    .control-group button.active {
+      background: #89b4fa;
+      color: #1e1e2e;
+      border-color: #89b4fa;
+    }
+
+    /* Editor container */
+    .editor-wrapper {
+      margin-bottom: 32px;
+    }
+
+    .editor-wrapper h2 {
+      font-size: 16px;
+      margin-bottom: 12px;
+      color: #89b4fa;
+    }
+
+    /* Comparison section */
+    .comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .comparison-panel {
+      background: #1e1e2e;
+      border: 1px solid #45475a;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .comparison-panel h3 {
+      padding: 12px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      background: #252536;
+      border-bottom: 1px solid #45475a;
+      color: #a6adc8;
+    }
+
+    .comparison-panel .content {
+      padding: 16px;
+      font-size: 13px;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      white-space: pre-wrap;
+      min-height: 120px;
+      color: #cdd6f4;
+      overflow: auto;
+      max-height: 300px;
+    }
+
+    /* Event log */
+    .event-log {
+      background: #1e1e2e;
+      border: 1px solid #45475a;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .event-log h3 {
+      padding: 12px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      background: #252536;
+      border-bottom: 1px solid #45475a;
+      color: #a6adc8;
+    }
+
+    .event-log .log-entries {
+      padding: 12px;
+      max-height: 200px;
+      overflow-y: auto;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      font-size: 12px;
+    }
+
+    .log-entry {
+      padding: 2px 0;
+      color: #6c7086;
+    }
+
+    .log-entry .event-name {
+      color: #f38ba8;
+    }
+
+    .log-entry .event-data {
+      color: #a6e3a1;
+    }
+
+    @media (max-width: 768px) {
+      .comparison {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="playground">
+    <div class="playground-header">
+      <h1>@nks-hub/texy-editor</h1>
+      <p>Modern TypeScript Texy Markup Editor — Interactive Demo</p>
+      <p style="margin-top:8px;font-size:12px;">
+        <a href="https://github.com/nks-hub/texy-ts-editor" style="color:#89b4fa;text-decoration:none;">GitHub</a>
+        &nbsp;&middot;&nbsp;
+        <a href="https://www.npmjs.com/package/@nks-hub/texy-editor" style="color:#89b4fa;text-decoration:none;">npm</a>
+        &nbsp;&middot;&nbsp;
+        <a href="https://texy.info" style="color:#89b4fa;text-decoration:none;">Texy</a>
+      </p>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <div class="control-group">
+        <label>Theme</label>
+        <select id="themeSelect">
+          <option value="light">Light</option>
+          <option value="dark" selected>Dark</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label>Language</label>
+        <select id="langSelect">
+          <option value="cs" selected>Čeština</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label>View</label>
+        <button id="viewEdit" class="active">Edit</button>
+        <button id="viewPreview">Preview</button>
+        <button id="viewSplit">Split</button>
+      </div>
+      <div class="control-group">
+        <label>Actions</label>
+        <button id="btnDestroy">Destroy</button>
+        <button id="btnRecreate">Recreate</button>
+        <button id="btnFullscreen">Fullscreen</button>
+      </div>
+    </div>
+
+    <!-- Editor -->
+    <div class="editor-wrapper">
+      <h2>Editor Instance</h2>
+      <textarea id="demo-textarea" rows="10">**Tučný text** a *kurzíva*
+
+Seznam:
+- první položka
+- druhá položka
+- třetí položka
+
+"Odkaz na Nette":https://nette.org
+
+> Citace z nějakého textu
+
+Nadpis
+######
+
+`inline kód` a blok kódu:
+
+/--code javascript
+const editor = new TexyEditor('#textarea');
+\--</textarea>
+    </div>
+
+    <!-- Comparison: Raw value vs. Preview HTML -->
+    <div class="comparison">
+      <div class="comparison-panel">
+        <h3>Raw Texy Source</h3>
+        <div class="content" id="rawSource"></div>
+      </div>
+      <div class="comparison-panel">
+        <h3>Client-Side Preview HTML</h3>
+        <div class="content" id="previewHtml"></div>
+      </div>
+    </div>
+
+    <!-- Event Log -->
+    <div class="event-log">
+      <h3>Event Log</h3>
+      <div class="log-entries" id="eventLog"></div>
+    </div>
+  </div>
+
+  <footer style="text-align:center;padding:32px 0 16px;color:#6c7086;font-size:12px;">
+    <p>Spiritual successor to <a href="https://github.com/janmarek/Texyla" style="color:#89b4fa;text-decoration:none;">Texyla</a> by Jan Marek</p>
+    <p style="margin-top:4px;">Powered by <a href="https://texy.info" style="color:#89b4fa;text-decoration:none;">Texy</a> markup language by David Grudl</p>
+    <p style="margin-top:4px;">&copy; 2026 <a href="https://github.com/nks-hub" style="color:#89b4fa;text-decoration:none;">NKS Hub</a> &middot; MIT License</p>
+  </footer>
+
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>

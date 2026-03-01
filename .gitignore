@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Editor/IDE local configs
+.[a-z]*/
+!.git/
+!.github/
+/[A-Z]*.md
+!/README.md

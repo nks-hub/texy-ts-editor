@@ -1,0 +1,63 @@
+{
+  "name": "@nks-hub/texy-editor",
+  "version": "0.1.0",
+  "description": "Modern TypeScript Texy markup editor with configurable toolbar, live preview, theming, and plugin system",
+  "type": "module",
+  "main": "./dist/texy-editor.cjs",
+  "module": "./dist/texy-editor.js",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/texy-editor.js",
+      "require": "./dist/texy-editor.cjs"
+    },
+    "./css": "./dist/texy-editor.css",
+    "./themes/light": "./dist/themes/light.css",
+    "./themes/dark": "./dist/themes/dark.css",
+    "./themes/bootstrap": "./dist/themes/bootstrap-adapter.css",
+    "./themes/tailwind": "./dist/themes/tailwind-adapter.css"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "dev": "vite serve playground",
+    "build": "vite build && tsc --emitDeclarationOnly --outDir dist/types",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src --ext .ts",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "texy",
+    "editor",
+    "markup",
+    "wysiwyg",
+    "toolbar",
+    "nette",
+    "typescript",
+    "textarea"
+  ],
+  "author": "nks-hub",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nks-hub/texy-ts-editor"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^4.0.18",
+    "jsdom": "^24.1.3",
+    "typescript": "^5.7.0",
+    "vite": "^6.1.0",
+    "vite-plugin-dts": "^4.5.0",
+    "vitest": "^4.0.18"
+  },
+  "sideEffects": [
+    "**/*.css"
+  ]
+}
