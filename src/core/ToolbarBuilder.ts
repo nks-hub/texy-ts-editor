@@ -6,43 +6,60 @@ import type {
   TexyEditorStrings,
 } from '../types';
 
-/** SVG icon paths for built-in toolbar buttons */
+/** SVG icon paths for built-in toolbar buttons (Lucide-inspired, 24×24 viewBox) */
 const ICONS: Record<string, string> = {
-  bold: '<path d="M6 4h5a3 3 0 0 1 0 6H6zm0 6h6a3 3 0 0 1 0 6H6z" stroke="currentColor" stroke-width="2" fill="none"/>',
-  italic: '<path d="M10 4h4M8 20h4M14 4l-4 16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>',
-  deleted: '<path d="M6 12h12M7 6h10a2 2 0 0 1 0 4H7M7 14h10a2 2 0 0 1 0 4H7" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-  inserted: '<path d="M6 18h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M8 4v10M16 4v10" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-  superscript: '<path d="M4 18l6-10 6 10M15 4h4l-4 5h4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>',
-  subscript: '<path d="M4 4l6 10 6-10M15 16h4l-4 5h4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>',
-  code: '<path d="M8 7l-4 5 4 5M16 7l4 5-4 5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-  codeBlock: '<rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 9l-2 3 2 3M16 9l2 3-2 3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>',
-  heading1: '<path d="M4 6v12M12 6v12M4 12h8M17 8v10M15 8h4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>',
-  heading2: '<path d="M4 6v12M12 6v12M4 12h8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M15 9a2 2 0 0 1 4 0c0 2-4 3-4 5h4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>',
-  heading3: '<path d="M4 6v12M12 6v12M4 12h8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M15 8h3l-2 3 2 0a2 2 0 0 1-3 2" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>',
-  heading4: '<path d="M4 6v12M12 6v12M4 12h8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M15 8v5h4M19 8v8" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>',
-  link: '<path d="M10 14a3.5 3.5 0 0 0 5-5l-1-1M14 10a3.5 3.5 0 0 0-5 5l1 1" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>',
-  image: '<rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/><circle cx="8.5" cy="10" r="1.5" fill="currentColor"/><path d="M21 15l-5-5L5 19" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-  ul: '<path d="M9 6h11M9 12h11M9 18h11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="4.5" cy="6" r="1.5" fill="currentColor"/><circle cx="4.5" cy="12" r="1.5" fill="currentColor"/><circle cx="4.5" cy="18" r="1.5" fill="currentColor"/>',
-  ol: '<path d="M10 6h10M10 12h10M10 18h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><text x="4" y="8" font-size="8" fill="currentColor" font-family="sans-serif">1</text><text x="4" y="14" font-size="8" fill="currentColor" font-family="sans-serif">2</text><text x="4" y="20" font-size="8" fill="currentColor" font-family="sans-serif">3</text>',
-  blockquote: '<path d="M6 10c0-3 2-5 5-5M13 10c0-3 2-5 5-5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M6 14c0 3 2 5 5 5M13 14c0 3 2 5 5 5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>',
-  hr: '<path d="M3 12h18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="2 3"/>',
-  table: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M3 10h18M3 16h18M10 4v16" stroke="currentColor" stroke-width="1.5"/>',
-  color: '<circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.5" fill="none"/><circle cx="12" cy="12" r="3" fill="currentColor"/>',
-  symbol: '<text x="6" y="17" font-size="16" fill="currentColor" font-family="serif">&#937;</text>',
-  acronym: '<path d="M4 16h4l2-6 2 6h4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M6 13h4" stroke="currentColor" stroke-width="1.5"/><path d="M16 8a2 2 0 1 0 4 0 2 2 0 0 0-4 0" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-  alignLeft: '<path d="M4 6h16M4 10h10M4 14h16M4 18h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
-  alignRight: '<path d="M4 6h16M10 10h10M4 14h16M10 18h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
-  alignCenter: '<path d="M4 6h16M7 10h10M4 14h16M7 18h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
-  alignJustify: '<path d="M4 6h16M4 10h16M4 14h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
-  indent: '<path d="M12 6h8M12 12h8M12 18h8M4 8l4 4-4 4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-  unindent: '<path d="M12 6h8M12 12h8M12 18h8M8 8l-4 4 4 4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-  undo: '<path d="M4 8h12a4 4 0 0 1 0 8H8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M7 5l-3 3 3 3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-  redo: '<path d="M20 8H8a4 4 0 0 0 0 8h8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M17 5l3 3-3 3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-  fullscreen: '<path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
-  preview: '<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" stroke="currentColor" stroke-width="1.5" fill="none"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/>',
-  edit: '<path d="M14 3l3 3L7 16l-4 1 1-4L14 3z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/>',
-  splitView: '<rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M12 4v16" stroke="currentColor" stroke-width="1.5"/>',
-  upload: '<path d="M12 16V4M8 8l4-4 4 4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>',
+  // ── Inline formatting ─────────────────────────────────
+  bold: '<path d="M7 5h6a3.5 3.5 0 0 1 0 7H7zm0 7h7a3.5 3.5 0 0 1 0 7H7z" stroke="currentColor" stroke-width="2" fill="none" stroke-linejoin="round"/>',
+  italic: '<line x1="19" y1="4" x2="10" y2="4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="14" y1="20" x2="5" y2="20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="15" y1="4" x2="9" y2="20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+  deleted: '<path d="M16 4H9a3 3 0 0 0 0 6h6a3 3 0 0 1 0 6H8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+  inserted: '<path d="M7 5v14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M17 5v14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 19h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+  superscript: '<path d="M4 19l7-12 7 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 3h3l-3 4h3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+  subscript: '<path d="M4 5l7 12 7-12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 17h3l-3 4h3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+  code: '<polyline points="16 18 22 12 16 6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><polyline points="8 6 2 12 8 18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+  codeBlock: '<rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/><polyline points="10 8 7 12 10 16" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><polyline points="14 8 17 12 14 16" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+
+  // ── Headings ──────────────────────────────────────────
+  heading1: '<path d="M4 12h8M4 5v14M12 5v14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M19.5 7v12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M17 9l2.5-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+  heading2: '<path d="M4 12h8M4 5v14M12 5v14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M16.5 8.5a2 2 0 0 1 3.5 1.3c0 1.5-3.5 3-3.5 4.7h4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+  heading3: '<path d="M4 12h8M4 5v14M12 5v14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M16.5 7h3.5l-2.5 3.5a2 2 0 1 1-1.5 3.5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+  heading4: '<path d="M4 12h8M4 5v14M12 5v14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M16.5 7v6h4M20.5 7v12" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+
+  // ── Links & media ─────────────────────────────────────
+  link: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>',
+  image: '<rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/><circle cx="8.5" cy="8.5" r="1.5" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M21 15l-5-5L5 21" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+
+  // ── Lists ─────────────────────────────────────────────
+  ul: '<line x1="8" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="8" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="8" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="4" cy="6" r="1" fill="currentColor"/><circle cx="4" cy="12" r="1" fill="currentColor"/><circle cx="4" cy="18" r="1" fill="currentColor"/>',
+  ol: '<line x1="10" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="10" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="10" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 6h1v4H4M5 10H3M4 16.5a1.5 1.5 0 0 0 3 0c0-1.5-3-1.5-3-3a1.5 1.5 0 0 1 3 0" stroke="currentColor" stroke-width="1" fill="none" stroke-linecap="round"/>',
+  blockquote: '<path d="M3 6h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M3 12h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="2" y="5" width="2" height="14" rx="1" fill="currentColor"/>',
+
+  // ── Block elements ────────────────────────────────────
+  hr: '<line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="7" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="17" cy="12" r="1" fill="currentColor"/>',
+  table: '<rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/><line x1="3" y1="9" x2="21" y2="9" stroke="currentColor" stroke-width="1.5"/><line x1="3" y1="15" x2="21" y2="15" stroke="currentColor" stroke-width="1.5"/><line x1="9" y1="3" x2="9" y2="21" stroke="currentColor" stroke-width="1.5"/><line x1="15" y1="3" x2="15" y2="21" stroke="currentColor" stroke-width="1.5"/>',
+
+  // ── Modifiers ─────────────────────────────────────────
+  color: '<path d="M12 2l8 14H4z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/><path d="M8 20h8" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>',
+  symbol: '<path d="M4 20h16M8 16l4-12 4 12M9.5 12h5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="18" cy="5" r="2" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+  acronym: '<path d="M3 15h4l2-6h6l2 6h4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 15l1.5-4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M19 15l-1.5-4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M8 20h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="1 2"/>',
+
+  // ── Alignment ─────────────────────────────────────────
+  alignLeft: '<line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="10" x2="15" y2="10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="14" x2="21" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="18" x2="15" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+  alignRight: '<line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="9" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="14" x2="21" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="9" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+  alignCenter: '<line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="6" y1="10" x2="18" y2="10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="14" x2="21" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="6" y1="18" x2="18" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+  alignJustify: '<line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="14" x2="21" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+  indent: '<line x1="12" y1="6" x2="20" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="18" x2="20" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><polyline points="4 8 8 12 4 16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+  unindent: '<line x1="12" y1="6" x2="20" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="18" x2="20" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><polyline points="8 8 4 12 8 16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+
+  // ── Actions ───────────────────────────────────────────
+  undo: '<path d="M3 7v6h6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>',
+  redo: '<path d="M21 7v6h-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>',
+  fullscreen: '<polyline points="15 3 21 3 21 9" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><polyline points="9 21 3 21 3 15" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><line x1="21" y1="3" x2="14" y2="10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="3" y1="21" x2="10" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+
+  // ── View modes ────────────────────────────────────────
+  preview: '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7S2 12 2 12z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/>',
+  edit: '<path d="M17 3a2.83 2.83 0 0 1 4 4L7.5 20.5 2 22l1.5-5.5Z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/><path d="M15 5l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>',
+  splitView: '<rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5" fill="none"/><line x1="12" y1="3" x2="12" y2="21" stroke="currentColor" stroke-width="1.5"/>',
+  upload: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/><polyline points="17 8 12 3 7 8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="3" x2="12" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
 };
 
 function createSvgIcon(name: string): string {
