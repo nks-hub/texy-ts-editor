@@ -1,5 +1,6 @@
 node_modules/
 dist/
+demo-dist/
 *.tsbuildinfo
 
 # Editor/IDE local configs

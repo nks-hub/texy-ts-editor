@@ -24,6 +24,7 @@
   ],
   "scripts": {
     "dev": "vite serve playground",
+    "build:demo": "vite build --mode demo",
     "build": "vite build && tsc --emitDeclarationOnly --outDir dist/types",
     "preview": "vite preview",
     "test": "vitest run",

@@ -11,6 +11,20 @@ export default defineConfig(({ mode }) => {
     };
   }
 
+  if (mode === 'demo') {
+    return {
+      root: 'playground',
+      base: '/texy-ts-editor/',
+      resolve: {
+        alias: { '@': resolve(__dirname, 'src') },
+      },
+      build: {
+        outDir: resolve(__dirname, 'demo-dist'),
+        emptyOutDir: true,
+      },
+    };
+  }
+
   return {
     resolve: {
       alias: { '@': resolve(__dirname, 'src') },
