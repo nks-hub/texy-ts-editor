@@ -430,6 +430,7 @@
   width: var(--te-dialog-width);
   max-width: 90vw;
   max-height: 80vh;
+  margin: auto;
   padding: 0;
   border: 1px solid var(--te-border-color);
   border-radius: var(--te-dialog-radius);

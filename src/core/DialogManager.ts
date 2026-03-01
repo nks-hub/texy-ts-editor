@@ -88,7 +88,7 @@ export class DialogManager {
       this.close(name);
     });
 
-    this.container.appendChild(dialog);
+    document.body.appendChild(dialog);
     this.openDialogs.set(name, dialog);
     dialog.showModal();
 
