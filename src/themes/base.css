@@ -427,7 +427,7 @@
 /* ── Dialog ────────────────────────────────────────────────── */
 
 .te-dialog {
-  position: fixed;
+  width: var(--te-dialog-width);
   max-width: 90vw;
   max-height: 80vh;
   padding: 0;
