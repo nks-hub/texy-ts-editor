@@ -30,6 +30,17 @@ export class DialogManager {
       dialog.style.width = config.width + 'px';
     }
 
+    // Copy theme from editor container so CSS variables work on body-level dialog
+    for (const cls of this.container.classList) {
+      if (cls.startsWith('te-theme-')) {
+        dialog.classList.add(cls);
+      }
+    }
+    const theme = this.container.getAttribute('data-te-theme');
+    if (theme) {
+      dialog.setAttribute('data-te-theme', theme);
+    }
+
     // Header
     const header = document.createElement('div');
     header.className = 'te-dialog-header';

@@ -4,7 +4,8 @@
 
 /* ── CSS Custom Properties (override to customize) ─────────── */
 
-.te-editor {
+.te-editor,
+.te-dialog {
   /* Surface colors */
   --te-bg: #ffffff;
   --te-bg-secondary: #f8f9fa;
@@ -73,7 +74,9 @@
 /* ── Dark Theme ────────────────────────────────────────────── */
 
 .te-theme-dark,
-[data-te-theme="dark"] {
+[data-te-theme="dark"],
+.te-dialog.te-theme-dark,
+.te-dialog[data-te-theme="dark"] {
   --te-bg: #1e1e2e;
   --te-bg-secondary: #252536;
   --te-bg-hover: #313244;
