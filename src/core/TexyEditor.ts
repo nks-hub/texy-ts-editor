@@ -456,7 +456,53 @@ export class TexyEditor implements TexyEditorAPI {
       edit: () => this.setView('edit'),
       preview: () => this.setView('preview'),
       splitView: () => this.setView('split'),
+      upload: () => this.handleUpload(),
     };
+  }
+
+  private handleUpload(): void {
+    const handler = this.options.uploadHandler;
+    if (!handler) return;
+
+    const input = document.createElement('input');
+    input.type = 'file';
+    if (handler.accept) input.accept = handler.accept;
+    input.style.display = 'none';
+
+    input.addEventListener('change', async () => {
+      const file = input.files?.[0];
+      if (!file) return;
+
+      if (handler.maxSize && file.size > handler.maxSize) {
+        alert(this.strings.upload + ': ' + file.name + ' is too large');
+        return;
+      }
+
+      this.events.emit('upload:start', { file });
+
+      try {
+        const result = await handler.upload(file);
+        this.events.emit('upload:complete', { url: result.url, file });
+
+        // Insert Texy image/link syntax based on file type
+        if (file.type.startsWith('image/')) {
+          const alt = result.alt || file.name;
+          const dims = result.width && result.height ? ` ${result.width}x${result.height}` : '';
+          this.selection.replace(`[* ${result.url}${dims} .>] *** ${alt}`);
+        } else {
+          this.selection.replace(`"${file.name}":${result.url}`);
+        }
+      } catch (err) {
+        const error = err instanceof Error ? err : new Error(String(err));
+        this.events.emit('upload:error', { error, file });
+        alert(error.message);
+      }
+
+      input.remove();
+    });
+
+    document.body.appendChild(input);
+    input.click();
   }
 
   private handleHeading(level: 1 | 2 | 3 | 4): void {
