@@ -2,64 +2,92 @@ import type { SyntaxMode } from './SyntaxMode';
 
 /**
  * Markdown / GFM syntax implementation of SyntaxMode.
- *
- * Uses standard CommonMark / GitHub Flavored Markdown conventions.
- * Non-standard extensions (inserted, superscript, subscript) use widely
- * supported but unofficial markers.
  */
 export class MarkdownMode implements SyntaxMode {
   readonly name = 'markdown';
 
-  bold(text: string): string {
-    return `**${text}**`;
+  readonly markers = {
+    bold: '**',
+    italic: '*',
+    deleted: '~~',
+    inserted: '++',
+    superscript: '^',
+    subscript: '~',
+    code: '`',
+  } as const;
+
+  // ── Inline ────────────────────────────────────────────────────
+
+  bold(text: string): string { return `**${text}**`; }
+  italic(text: string): string { return `*${text}*`; }
+  deleted(text: string): string { return `~~${text}~~`; }
+  inserted(text: string): string { return `++${text}++`; }
+  superscript(text: string): string { return `^${text}^`; }
+  subscript(text: string): string { return `~${text}~`; }
+  code(text: string): string { return `\`${text}\``; }
+
+  // ── Links ─────────────────────────────────────────────────────
+
+  link(text: string, url: string): string {
+    return `[${text}](${url})`;
   }
 
-  italic(text: string): string {
-    return `*${text}*`;
+  linkEmpty(url: string): string {
+    return `[](${url})`;
   }
 
-  /** GFM strikethrough */
-  deleted(text: string): string {
-    return `~~${text}~~`;
+  linkCursorOffset(): number {
+    return 1; // cursor inside brackets: [|](url)
   }
 
-  /** Common extension — not part of CommonMark */
-  inserted(text: string): string {
-    return `++${text}++`;
+  linkPhrasePrefix(): string {
+    return '[';
   }
 
-  /** Common extension — not part of CommonMark */
-  superscript(text: string): string {
-    return `^${text}^`;
+  linkPhraseSuffix(url: string): string {
+    return `](${url})`;
   }
 
-  /** Common extension — not part of CommonMark */
-  subscript(text: string): string {
-    return `~${text}~`;
+  // ── Images ────────────────────────────────────────────────────
+
+  image(alt: string, url: string): string {
+    return `![${alt}](${url})`;
   }
+
+  imageWithOptions(
+    src: string,
+    alt?: string,
+    _align?: '<' | '>' | '<>' | '*',
+    options?: { width?: number; height?: number; caption?: string; link?: string },
+  ): string {
+    let markup = `![${alt || ''}](${src})`;
+    if (options?.link) {
+      markup = `[${markup}](${options.link})`;
+    }
+    return markup;
+  }
+
+  // ── Headings ──────────────────────────────────────────────────
 
   heading(text: string, level: number): string {
     const hashes = '#'.repeat(Math.min(Math.max(level, 1), 6));
     return `${hashes} ${text}`;
   }
 
-  link(text: string, url: string): string {
-    return `[${text}](${url})`;
-  }
-
-  image(alt: string, url: string): string {
-    return `![${alt}](${url})`;
-  }
-
-  code(text: string): string {
-    return `\`${text}\``;
-  }
+  // ── Code blocks ───────────────────────────────────────────────
 
   codeBlock(code: string, lang?: string): string {
     const fence = '```';
     const langPart = lang ?? '';
     return `${fence}${langPart}\n${code}\n${fence}`;
   }
+
+  codeBlockWrap(lang?: string): { open: string; close: string } {
+    const langPart = lang ?? '';
+    return { open: `\`\`\`${langPart}\n`, close: `\n\`\`\`` };
+  }
+
+  // ── Lists ─────────────────────────────────────────────────────
 
   unorderedList(items: string[]): string {
     return items.map((item) => `- ${item}`).join('\n');
@@ -69,16 +97,21 @@ export class MarkdownMode implements SyntaxMode {
     return items.map((item, i) => `${i + 1}. ${item}`).join('\n');
   }
 
+  orderedBullet(index: number): string {
+    return `${index}.`;
+  }
+
+  // ── Block elements ────────────────────────────────────────────
+
   blockquote(text: string): string {
-    return text
-      .split('\n')
-      .map((line) => `> ${line}`)
-      .join('\n');
+    return text.split('\n').map((line) => `> ${line}`).join('\n');
   }
 
   horizontalRule(): string {
     return '---';
   }
+
+  // ── Tables ────────────────────────────────────────────────────
 
   table(rows: string[][], header = false): string {
     if (rows.length === 0) return '';
@@ -90,11 +123,8 @@ export class MarkdownMode implements SyntaxMode {
       '| ' + cells.join(' | ') + ' |';
 
     if (header) {
-      // First row is the header
       lines.push(formatRow(rows[0]));
-      // Separator
       lines.push('| ' + Array(colCount).fill('---').join(' | ') + ' |');
-      // Remaining rows
       for (let i = 1; i < rows.length; i++) {
         lines.push(formatRow(rows[i]));
       }
@@ -105,5 +135,48 @@ export class MarkdownMode implements SyntaxMode {
     }
 
     return lines.join('\n');
+  }
+
+  tableGrid(cols: number, rows: number, header?: 'none' | 'top' | 'left'): string {
+    let markup = '';
+
+    for (let i = 0; i < rows; i++) {
+      markup += '|';
+      for (let j = 0; j < cols; j++) {
+        markup += ` ${header === 'top' && i === 0 ? 'Header' : '  '} |`;
+      }
+      markup += '\n';
+      if (header === 'top' && i === 0) {
+        markup += '|';
+        for (let j = 0; j < cols; j++) {
+          markup += ' --- |';
+        }
+        markup += '\n';
+      }
+    }
+
+    return markup;
+  }
+
+  // ── Syntax-specific (no-op for Markdown) ──────────────────────
+
+  acronym(_text: string, _title: string): string {
+    return '';
+  }
+
+  colorModifier(text: string, _color: string): string {
+    return text;
+  }
+
+  classModifier(text: string, _className: string): string {
+    return text;
+  }
+
+  alignmentPrefix(_type: string): string {
+    return '';
+  }
+
+  supportsModifiers(): boolean {
+    return false;
   }
 }

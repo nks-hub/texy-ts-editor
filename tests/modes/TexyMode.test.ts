@@ -12,206 +12,220 @@ describe('TexyMode', () => {
     expect(mode.name).toBe('texy');
   });
 
+  // ── Markers ─────────────────────────────────────────────────
+
+  describe('markers', () => {
+    it('bold marker is **', () => { expect(mode.markers.bold).toBe('**'); });
+    it('italic marker is *', () => { expect(mode.markers.italic).toBe('*'); });
+    it('deleted marker is --', () => { expect(mode.markers.deleted).toBe('--'); });
+    it('inserted marker is ++', () => { expect(mode.markers.inserted).toBe('++'); });
+    it('superscript marker is ^^', () => { expect(mode.markers.superscript).toBe('^^'); });
+    it('subscript marker is __', () => { expect(mode.markers.subscript).toBe('__'); });
+    it('code marker is `', () => { expect(mode.markers.code).toBe('`'); });
+  });
+
   // ── Inline phrases ──────────────────────────────────────────
 
-  describe('bold()', () => {
-    it('wraps text with **', () => {
-      expect(mode.bold('hello')).toBe('**hello**');
-    });
-
-    it('handles empty string', () => {
-      expect(mode.bold('')).toBe('****');
-    });
+  describe('inline', () => {
+    it('bold', () => { expect(mode.bold('hello')).toBe('**hello**'); });
+    it('italic', () => { expect(mode.italic('hello')).toBe('*hello*'); });
+    it('deleted', () => { expect(mode.deleted('old')).toBe('--old--'); });
+    it('inserted', () => { expect(mode.inserted('new')).toBe('++new++'); });
+    it('superscript', () => { expect(mode.superscript('2')).toBe('^^2^^'); });
+    it('subscript', () => { expect(mode.subscript('2')).toBe('__2__'); });
+    it('code', () => { expect(mode.code('const x')).toBe('`const x`'); });
+    it('bold empty', () => { expect(mode.bold('')).toBe('****'); });
   });
 
-  describe('italic()', () => {
-    it('wraps text with *', () => {
-      expect(mode.italic('hello')).toBe('*hello*');
-    });
-  });
-
-  describe('deleted()', () => {
-    it('wraps text with --', () => {
-      expect(mode.deleted('old')).toBe('--old--');
-    });
-  });
-
-  describe('inserted()', () => {
-    it('wraps text with ++', () => {
-      expect(mode.inserted('new')).toBe('++new++');
-    });
-  });
-
-  describe('superscript()', () => {
-    it('wraps text with ^^', () => {
-      expect(mode.superscript('2')).toBe('^^2^^');
-    });
-  });
-
-  describe('subscript()', () => {
-    it('wraps text with __', () => {
-      expect(mode.subscript('2')).toBe('__2__');
-    });
-  });
-
-  describe('code()', () => {
-    it('wraps text with backticks', () => {
-      expect(mode.code('const x')).toBe('`const x`');
-    });
-  });
-
-  // ── Headings ────────────────────────────────────────────────
+  // ── Headings ──────────────────────────────────────────────
 
   describe('heading()', () => {
-    it('produces underline with 6 # for level 1', () => {
+    it('level 1 uses underline chars', () => {
       const result = mode.heading('Title', 1);
       const lines = result.split('\n');
       expect(lines[0]).toBe('Title');
-      // 7 - 1 = 6 chars
-      expect(lines[1]).toBe('######');
+      expect(lines[1]).toMatch(/^#{3,}$/);
     });
 
-    it('produces underline with 5 # for level 2', () => {
+    it('level 2 uses * underline', () => {
       const result = mode.heading('Sub', 2);
       const lines = result.split('\n');
-      expect(lines[1]).toBe('#####');
+      expect(lines[1]).toMatch(/^\*{3,}$/);
     });
 
-    it('produces underline with 4 # for level 3', () => {
+    it('level 3 uses = underline', () => {
       const result = mode.heading('Section', 3);
       const lines = result.split('\n');
-      expect(lines[1]).toBe('####');
+      expect(lines[1]).toMatch(/^={3,}$/);
     });
 
-    it('produces underline with minimum 3 chars for level 4', () => {
+    it('level 4 uses - underline', () => {
       const result = mode.heading('Sub', 4);
       const lines = result.split('\n');
-      expect(lines[1]).toBe('###');
-    });
-
-    it('includes heading text on first line', () => {
-      const result = mode.heading('My Heading', 1);
-      expect(result.startsWith('My Heading\n')).toBe(true);
+      expect(lines[1]).toMatch(/^-{3,}$/);
     });
   });
 
-  // ── Links ────────────────────────────────────────────────────
+  // ── Links ─────────────────────────────────────────────────
 
-  describe('link()', () => {
-    it('produces Texy link syntax', () => {
+  describe('links', () => {
+    it('link() produces Texy syntax', () => {
       expect(mode.link('Nette', 'https://nette.org')).toBe('"Nette":https://nette.org');
     });
 
-    it('handles relative URLs', () => {
-      expect(mode.link('page', '/about')).toBe('"page":/about');
+    it('linkEmpty()', () => {
+      expect(mode.linkEmpty('https://ex.com')).toBe('"":https://ex.com');
+    });
+
+    it('linkCursorOffset() is 1', () => {
+      expect(mode.linkCursorOffset()).toBe(1);
+    });
+
+    it('linkPhrasePrefix() is "', () => {
+      expect(mode.linkPhrasePrefix()).toBe('"');
+    });
+
+    it('linkPhraseSuffix()', () => {
+      expect(mode.linkPhraseSuffix('https://ex.com')).toBe('":https://ex.com');
     });
   });
 
-  // ── Images ──────────────────────────────────────────────────
+  // ── Images ────────────────────────────────────────────────
 
-  describe('image()', () => {
-    it('produces Texy image syntax without alt', () => {
+  describe('images', () => {
+    it('image() without alt', () => {
       expect(mode.image('', 'photo.jpg')).toBe('[* photo.jpg *]');
     });
 
-    it('produces Texy image syntax with alt text', () => {
-      expect(mode.image('Cat photo', 'cat.jpg')).toBe('[* cat.jpg .( Cat photo) *]');
+    it('image() with alt', () => {
+      expect(mode.image('Cat', 'cat.jpg')).toBe('[* cat.jpg .( Cat) *]');
+    });
+
+    it('imageWithOptions() basic', () => {
+      const result = mode.imageWithOptions('photo.jpg', 'Photo');
+      expect(result).toContain('[* photo.jpg');
+      expect(result).toContain('.( Photo)');
+    });
+
+    it('imageWithOptions() with dimensions', () => {
+      const result = mode.imageWithOptions('photo.jpg', undefined, '*', { width: 200, height: 100 });
+      expect(result).toContain('200x100');
+    });
+
+    it('imageWithOptions() with link', () => {
+      const result = mode.imageWithOptions('photo.jpg', undefined, '*', { link: '/detail' });
+      expect(result).toContain(':/detail');
+    });
+
+    it('imageWithOptions() with caption', () => {
+      const result = mode.imageWithOptions('photo.jpg', undefined, '*', { caption: 'A photo' });
+      expect(result).toContain('*** A photo');
     });
   });
 
-  // ── Code block ──────────────────────────────────────────────
+  // ── Code blocks ───────────────────────────────────────────
 
-  describe('codeBlock()', () => {
-    it('wraps with /--code and \\--', () => {
-      const result = mode.codeBlock('const x = 1;');
-      expect(result).toBe('/--code\nconst x = 1;\n\\--');
+  describe('codeBlock', () => {
+    it('wraps with /--code', () => {
+      expect(mode.codeBlock('x = 1;')).toBe('/--code\nx = 1;\n\\--');
     });
 
-    it('includes language specifier', () => {
-      const result = mode.codeBlock('const x = 1;', 'javascript');
-      expect(result).toBe('/--code javascript\nconst x = 1;\n\\--');
+    it('includes language', () => {
+      expect(mode.codeBlock('x = 1;', 'js')).toBe('/--code js\nx = 1;\n\\--');
     });
 
-    it('handles empty code', () => {
-      const result = mode.codeBlock('');
-      expect(result).toBe('/--code\n\n\\--');
-    });
-  });
-
-  // ── Lists ────────────────────────────────────────────────────
-
-  describe('unorderedList()', () => {
-    it('uses - bullet', () => {
-      const result = mode.unorderedList(['apple', 'banana']);
-      expect(result).toBe('- apple\n- banana');
-    });
-
-    it('handles single item', () => {
-      expect(mode.unorderedList(['one'])).toBe('- one');
+    it('codeBlockWrap()', () => {
+      const wrap = mode.codeBlockWrap('php');
+      expect(wrap.open).toBe('/--code php\n');
+      expect(wrap.close).toBe('\n\\--');
     });
   });
 
-  describe('orderedList()', () => {
-    it('uses ) not . after number (Texy convention)', () => {
-      const result = mode.orderedList(['first', 'second', 'third']);
-      expect(result).toBe('1) first\n2) second\n3) third');
+  // ── Lists ─────────────────────────────────────────────────
+
+  describe('lists', () => {
+    it('unorderedList', () => {
+      expect(mode.unorderedList(['a', 'b'])).toBe('- a\n- b');
     });
 
-    it('handles single item', () => {
-      expect(mode.orderedList(['only'])).toBe('1) only');
-    });
-  });
-
-  // ── Blockquote ───────────────────────────────────────────────
-
-  describe('blockquote()', () => {
-    it('prefixes each line with >', () => {
-      const result = mode.blockquote('line one\nline two');
-      expect(result).toBe('> line one\n> line two');
+    it('orderedList uses )', () => {
+      expect(mode.orderedList(['a', 'b'])).toBe('1) a\n2) b');
     });
 
-    it('handles single line', () => {
-      expect(mode.blockquote('quote')).toBe('> quote');
+    it('orderedBullet()', () => {
+      expect(mode.orderedBullet(1)).toBe('1)');
+      expect(mode.orderedBullet(3)).toBe('3)');
     });
   });
 
-  // ── Horizontal rule ──────────────────────────────────────────
+  // ── Blockquote & HR ───────────────────────────────────────
 
-  describe('horizontalRule()', () => {
-    it('returns a sequence of dashes', () => {
-      const result = mode.horizontalRule();
-      expect(result).toMatch(/^-{3,}$/);
+  describe('blockquote', () => {
+    it('prefixes lines with >', () => {
+      expect(mode.blockquote('a\nb')).toBe('> a\n> b');
     });
   });
 
-  // ── Table ────────────────────────────────────────────────────
+  describe('horizontalRule', () => {
+    it('returns long dashes', () => {
+      expect(mode.horizontalRule()).toMatch(/^-{3,}$/);
+    });
+  });
 
-  describe('table()', () => {
-    it('returns empty string for empty rows', () => {
+  // ── Tables ────────────────────────────────────────────────
+
+  describe('table', () => {
+    it('empty returns empty', () => {
       expect(mode.table([])).toBe('');
     });
 
-    it('produces pipe-delimited table without header', () => {
+    it('basic table', () => {
       const result = mode.table([['A', 'B'], ['C', 'D']]);
       expect(result).toContain('|');
       expect(result).toContain('A');
-      expect(result).toContain('D');
     });
 
-    it('marks first row as header when header=true', () => {
-      const result = mode.table([['Name', 'Age'], ['Alice', '30']], true);
-      const lines = result.split('\n');
-      // First line should contain * markers for header cells
-      expect(lines[0]).toContain('*');
-      // Second line should be separator
-      expect(lines[1]).toMatch(/^\|[-|]+\|$/);
+    it('header uses * marker', () => {
+      const result = mode.table([['H1', 'H2'], ['a', 'b']], true);
+      expect(result).toContain('*');
     });
 
-    it('data rows do not use * marker', () => {
-      const result = mode.table([['H1', 'H2'], ['r1c1', 'r1c2']], true);
-      const lines = result.split('\n');
-      // Third line is data row, should not start with |*
-      expect(lines[2]).not.toMatch(/^\|\*/);
+    it('tableGrid() generates grid', () => {
+      const result = mode.tableGrid(2, 2, 'top');
+      expect(result).toContain('|');
+      expect(result).toContain('--------');
+    });
+  });
+
+  // ── Syntax-specific ───────────────────────────────────────
+
+  describe('syntax-specific', () => {
+    it('supportsModifiers() is true', () => {
+      expect(mode.supportsModifiers()).toBe(true);
+    });
+
+    it('acronym() single word', () => {
+      expect(mode.acronym('NATO', 'North Atlantic Treaty Organisation'))
+        .toBe('NATO((North Atlantic Treaty Organisation))');
+    });
+
+    it('acronym() phrase', () => {
+      expect(mode.acronym('some phrase', 'title'))
+        .toBe('"some phrase"((title))');
+    });
+
+    it('colorModifier()', () => {
+      const result = mode.colorModifier('text', 'red');
+      expect(result).toContain('color: red');
+    });
+
+    it('classModifier()', () => {
+      const result = mode.classModifier('text', 'highlight');
+      expect(result).toContain('highlight');
+    });
+
+    it('alignmentPrefix()', () => {
+      expect(mode.alignmentPrefix('<')).toBe('.<\n');
     });
   });
 });

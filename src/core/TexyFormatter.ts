@@ -4,7 +4,8 @@ import { TexyMode } from '../modes/TexyMode';
 
 /**
  * Markup insertion and toggle operations.
- * Uses SyntaxMode to produce correct markup for the active dialect.
+ * Delegates ALL syntax decisions to the active SyntaxMode.
+ * Contains zero hardcoded syntax — only selection manipulation logic.
  */
 export class TexyFormatter {
   private mode: SyntaxMode;
@@ -21,52 +22,34 @@ export class TexyFormatter {
     return this.mode;
   }
 
-  isMarkdown(): boolean {
-    return this.mode.name === 'markdown';
-  }
-
   // ── Inline Phrases ──────────────────────────────────────────
 
   bold(): void {
-    this.selection.trimSelect();
-    const text = this.selection.text();
-
-    if (text.match(/^\*\*.*\*\*$/)) {
-      this.selection.replace(text.substring(2, text.length - 2));
-    } else {
-      this.selection.tag('**', '**');
-    }
+    this.toggleInline(this.mode.markers.bold);
   }
 
   italic(): void {
-    this.selection.trimSelect();
-    const text = this.selection.text();
-
-    if (text.match(/^\*\*\*.*\*\*\*$/) || text.match(/^\*[^*]+\*$/)) {
-      this.selection.replace(text.substring(1, text.length - 1));
-    } else {
-      this.selection.tag('*', '*');
-    }
+    this.toggleInline(this.mode.markers.italic);
   }
 
   deleted(): void {
-    this.toggleInline(this.isMarkdown() ? '~~' : '--');
+    this.toggleInline(this.mode.markers.deleted);
   }
 
   inserted(): void {
-    this.toggleInline('++');
+    this.toggleInline(this.mode.markers.inserted);
   }
 
   superscript(): void {
-    this.toggleInline('^^');
+    this.toggleInline(this.mode.markers.superscript);
   }
 
   subscript(): void {
-    this.toggleInline('__');
+    this.toggleInline(this.mode.markers.subscript);
   }
 
   inlineCode(): void {
-    this.toggleInline('`');
+    this.toggleInline(this.mode.markers.code);
   }
 
   noTexy(): void {
@@ -82,40 +65,27 @@ export class TexyFormatter {
   link(url: string, text?: string): void {
     if (!url) return;
 
-    if (this.isMarkdown()) {
-      if (text) {
-        this.selection.replace(`[${text}](${url})`);
-      } else if (this.selection.isCursor()) {
-        this.selection.replace(`[](${url})`);
-        const state = this.selection.getState();
-        this.selection.setCursor(state.start + 1);
-      } else {
-        this.selection.phrase('[', `](${url})`);
-      }
+    if (text) {
+      this.selection.replace(this.mode.link(text, url));
+    } else if (this.selection.isCursor()) {
+      this.selection.replace(this.mode.linkEmpty(url));
+      const state = this.selection.getState();
+      this.selection.setCursor(state.start + this.mode.linkCursorOffset());
     } else {
-      if (text) {
-        this.selection.replace(`"${text}":${url}`);
-      } else if (this.selection.isCursor()) {
-        this.selection.replace(`"":${url}`);
-        const state = this.selection.getState();
-        this.selection.setCursor(state.start + 1);
-      } else {
-        this.selection.phrase('"', `":${url}`);
-      }
+      this.selection.phrase(
+        this.mode.linkPhrasePrefix(),
+        this.mode.linkPhraseSuffix(url),
+      );
     }
   }
 
   acronym(title: string): void {
     if (!title) return;
-
     const text = this.selection.text();
+    const result = this.mode.acronym(text, title);
 
-    // Single word - no quotes needed: word((title))
-    if (text.match(/^[\p{L}\p{N}]{2,}$/u)) {
-      this.selection.tag('', `((${title}))`);
-    } else {
-      // Phrase - needs quotes: "phrase"((title))
-      this.selection.phrase('"', `"((${title}))`);
+    if (result) {
+      this.selection.replace(result);
     }
   }
 
@@ -127,83 +97,27 @@ export class TexyFormatter {
     align?: '<' | '>' | '<>' | '*',
     options?: { width?: number; height?: number; caption?: string; link?: string },
   ): void {
-    if (this.isMarkdown()) {
-      let markup = `![${alt || ''}](${src})`;
-      if (options?.link) {
-        markup = `[${markup}](${options.link})`;
-      }
-      this.selection.replace(markup);
-      return;
-    }
-
-    let markup = '';
-
-    // Center alignment needs paragraph modifier
-    if (align === '<>') {
-      markup += this.selection.lf + '.<>' + this.selection.lf;
-      align = '*';
-    }
-
-    markup += '[* ' + src;
-
-    // Dimensions: 150x100, 150, ?x100
-    if (options?.width && options?.height) {
-      markup += ' ' + options.width + 'x' + options.height;
-    } else if (options?.width) {
-      markup += ' ' + options.width;
-    } else if (options?.height) {
-      markup += ' ?x' + options.height;
-    }
-
-    markup += ' ';
-    if (alt) markup += `.( ${alt}) `;
-    markup += (align || '*') + ']';
-
-    // Clickable image link
-    if (options?.link) markup += ':' + options.link;
-
-    // Figure caption
-    if (options?.caption) markup += ' *** ' + options.caption;
-
+    const markup = this.mode.imageWithOptions(src, alt, align, options);
     this.selection.replace(markup);
   }
 
   // ── Headings ──────────────────────────────────────────────────
 
   heading(level: 1 | 2 | 3 | 4): void {
-    const lf = this.selection.lf;
     this.selection.selectBlock();
 
     if (this.selection.isCursor()) {
-      return; // Need text or prompt - handled by toolbar action
+      return; // Need text or prompt — handled by toolbar action
     }
 
     const text = this.selection.text();
-
-    if (this.isMarkdown()) {
-      const hashes = '#'.repeat(level);
-      this.selection.replace(`${hashes} ${text}`);
-    } else {
-      const underlineChars: Record<number, string> = { 1: '#', 2: '*', 3: '=', 4: '-' };
-      const char = underlineChars[level];
-      const underline = char.repeat(Math.max(3, text.length));
-      this.selection.tag('', lf + underline);
-    }
+    this.selection.replace(this.mode.heading(text, level));
   }
 
   headingWithPrompt(level: 1 | 2 | 3 | 4, text: string): void {
     if (!text) return;
     const lf = this.selection.lf;
-
-    if (this.isMarkdown()) {
-      const hashes = '#'.repeat(level);
-      this.selection.tag(`${hashes} ${text}${lf}`, '');
-    } else {
-      const underlineChars: Record<number, string> = { 1: '#', 2: '*', 3: '=', 4: '-' };
-      const char = underlineChars[level];
-      const underline = char.repeat(Math.max(3, text.length));
-      this.selection.tag(text + lf + underline + lf, '');
-    }
+    this.selection.tag(this.mode.heading(text, level) + lf, '');
   }
 
   // ── Lists ─────────────────────────────────────────────────────
@@ -260,33 +174,16 @@ export class TexyFormatter {
 
   // ── Alignment ─────────────────────────────────────────────────
 
-  alignLeft(): void {
-    this.insertAlignment('<');
-  }
-
-  alignRight(): void {
-    this.insertAlignment('>');
-  }
-
-  alignCenter(): void {
-    this.insertAlignment('<>');
-  }
-
-  alignJustify(): void {
-    this.insertAlignment('=');
-  }
+  alignLeft(): void { this.insertAlignment('<'); }
+  alignRight(): void { this.insertAlignment('>'); }
+  alignCenter(): void { this.insertAlignment('<>'); }
+  alignJustify(): void { this.insertAlignment('='); }
 
   // ── Block Elements ────────────────────────────────────────────
 
   codeBlock(language?: string): void {
-    const lf = this.selection.lf;
-    if (this.isMarkdown()) {
-      const lang = language ?? '';
-      this.selection.tag(`\`\`\`${lang}${lf}`, `${lf}\`\`\``);
-    } else {
-      const lang = language ? ' ' + language : '';
-      this.selection.tag(`/--code${lang}${lf}`, `${lf}\\--`);
-    }
+    const wrap = this.mode.codeBlockWrap(language);
+    this.selection.tag(wrap.open, wrap.close);
   }
 
   htmlBlock(): void {
@@ -312,8 +209,7 @@ export class TexyFormatter {
 
   horizontalRule(): void {
     const lf = this.selection.lf;
-    const hr = this.isMarkdown() ? '---' : '-------------------';
-    const rule = `${lf}${lf}${hr}${lf}${lf}`;
+    const rule = `${lf}${lf}${this.mode.horizontalRule()}${lf}${lf}`;
 
     if (this.selection.isCursor()) {
       this.selection.tag(rule, '');
@@ -326,55 +222,29 @@ export class TexyFormatter {
 
   table(cols: number, rows: number, header?: 'none' | 'top' | 'left'): void {
     const lf = this.selection.lf;
-    let markup = lf;
-
-    if (this.isMarkdown()) {
-      for (let i = 0; i < rows; i++) {
-        markup += '|';
-        for (let j = 0; j < cols; j++) {
-          markup += ` ${header === 'top' && i === 0 ? 'Header' : '  '} |`;
-        }
-        markup += lf;
-        if (header === 'top' && i === 0) {
-          markup += '|';
-          for (let j = 0; j < cols; j++) {
-            markup += ' --- |';
-          }
-          markup += lf;
-        }
-      }
-    } else {
-      for (let i = 0; i < rows; i++) {
-        if (header === 'top' && i === 1) {
-          markup += '|';
-          for (let j = 0; j < cols; j++) {
-            markup += '--------';
-          }
-          markup += lf;
-        }
-        for (let j = 0; j < cols; j++) {
-          if (header === 'left' && j === 0) {
-            markup += '|* \t';
-          } else {
-            markup += '| \t';
-          }
-        }
-        markup += '|' + lf;
-      }
-    }
-    markup += lf;
-
+    const markup = lf + this.mode.tableGrid(cols, rows, header) + lf;
     this.selection.replace(markup);
   }
 
   // ── Modifiers ─────────────────────────────────────────────────
 
   colorModifier(color: string): void {
-    this.selection.phrase(`"`, `" .{color: ${color}}`);
+    const text = this.selection.text();
+    const result = this.mode.colorModifier(text, color);
+    if (result !== text) {
+      this.selection.replace(result);
+    } else {
+      // Mode doesn't support modifiers — wrap as plain phrase
+      this.selection.phrase(this.mode.linkPhrasePrefix(), this.mode.linkPhraseSuffix(''));
+    }
   }
 
   classModifier(className: string): void {
-    this.selection.phrase(`"`, `" .[${className}]`);
+    const text = this.selection.text();
+    const result = this.mode.classModifier(text, className);
+    if (result !== text) {
+      this.selection.replace(result);
+    }
   }
 
   // ── Symbols ───────────────────────────────────────────────────
@@ -416,7 +286,6 @@ export class TexyFormatter {
     }
 
     if (this.selection.isCursor()) {
-      // Place cursor after first bullet
       const firstLine = parts[0];
       const rest = parts.slice(1).join(lf);
       this.selection.tag(firstLine, lf + rest);
@@ -428,7 +297,7 @@ export class TexyFormatter {
   private getBullet(type: string, index: number): string {
     switch (type) {
       case 'ul': return '-';
-      case 'ol': return index + (this.isMarkdown() ? '.' : ')');
+      case 'ol': return this.mode.orderedBullet(index);
       case 'bq': return '>';
       case 'indent': return '';
       case 'romans': return this.toRoman(index) + ')';
@@ -460,11 +329,15 @@ export class TexyFormatter {
   }
 
   private insertAlignment(type: string): void {
+    if (!this.mode.supportsModifiers()) return;
+
     const value = this.selection.getValue();
     const start = this.selection.getState().start;
     const lf = this.selection.lf;
     const newPar = lf + lf;
-    const prefix = '.' + type + lf;
+    const prefix = this.mode.alignmentPrefix(type);
+
+    if (!prefix) return;
 
     const found = value.substring(0, start).lastIndexOf(newPar);
 
@@ -474,7 +347,7 @@ export class TexyFormatter {
     } else {
       const beforePar = found + newPar.length;
       this.selection.setValue(
-        value.substring(0, beforePar) + prefix + value.substring(beforePar)
+        value.substring(0, beforePar) + prefix + value.substring(beforePar),
       );
       this.selection.setCursor(start + prefix.length);
     }
