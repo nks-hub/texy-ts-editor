@@ -17,6 +17,10 @@ import { ToolbarBuilder } from './ToolbarBuilder';
 import { DialogManager } from './DialogManager';
 import { TexyParser } from '../parser';
 import { getStrings } from '../i18n';
+import type { SyntaxMode } from '../modes/SyntaxMode';
+import { TexyMode } from '../modes/TexyMode';
+import { MarkdownMode } from '../modes/MarkdownMode';
+import { MarkdownPreview } from '../preview/MarkdownPreview';
 
 const DEFAULT_TOOLBAR: ToolbarConfig = [
   'bold', 'italic', null,
@@ -66,6 +70,8 @@ export class TexyEditor implements TexyEditorAPI {
   private currentView: ViewMode = 'edit';
   private isFullscreen = false;
   private parser!: TexyParser;
+  private mode!: SyntaxMode;
+  private markdownPreview!: MarkdownPreview | null;
   private plugins: TexyPlugin[] = [];
   private previewDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   private lastPreviewedValue = '';
@@ -95,12 +101,14 @@ export class TexyEditor implements TexyEditorAPI {
     this.strings = getStrings(this.options.language ?? 'cs');
 
     // Core modules
+    this.mode = options.syntaxMode === 'markdown' ? new MarkdownMode() : new TexyMode();
     this.selection = new Selection(this.textarea);
-    this.formatter = new TexyFormatter(this.selection);
+    this.formatter = new TexyFormatter(this.selection, this.mode);
     this.events = new EventBus();
     this.undoManager = new UndoManager(this.options.maxUndoSteps);
     this.keyboard = new KeyboardManager(this.textarea, this.options.shortcuts);
     this.parser = new TexyParser();
+    this.markdownPreview = options.syntaxMode === 'markdown' ? new MarkdownPreview() : null;
 
     // Register built-in actions
     this.registerActions();
@@ -393,13 +401,18 @@ export class TexyEditor implements TexyEditorAPI {
     if (value === this.lastPreviewedValue) return;
     this.lastPreviewedValue = value;
 
-    // Server-side preview
+    // Server-side preview (works regardless of mode)
     if (this.options.previewPath) {
       this.previewContent.innerHTML = `<p class="te-preview-loading">${this.strings.previewLoading}</p>`;
       this.fetchServerPreview(value);
     } else if (this.options.livePreview) {
-      // Client-side Texy parser
-      this.previewContent.innerHTML = `<div class="te-preview-rendered">${this.parser.parse(value)}</div>`;
+      if (this.markdownPreview) {
+        // Client-side Markdown renderer
+        this.previewContent.innerHTML = `<div class="te-preview-rendered">${this.markdownPreview.render(value)}</div>`;
+      } else {
+        // Client-side Texy parser
+        this.previewContent.innerHTML = `<div class="te-preview-rendered">${this.parser.parse(value)}</div>`;
+      }
     }
   }
 
@@ -484,13 +497,17 @@ export class TexyEditor implements TexyEditorAPI {
         const result = await handler.upload(file);
         this.events.emit('upload:complete', { url: result.url, file });
 
-        // Insert Texy image/link syntax based on file type
+        // Insert image/link syntax based on file type and active mode
         if (file.type.startsWith('image/')) {
           const alt = result.alt || file.name;
-          const dims = result.width && result.height ? ` ${result.width}x${result.height}` : '';
-          this.selection.replace(`[* ${result.url}${dims} .>] *** ${alt}`);
+          if (this.mode.name === 'markdown') {
+            this.formatter.image(result.url, alt);
+          } else {
+            const dims = result.width && result.height ? ` ${result.width}x${result.height}` : '';
+            this.selection.replace(`[* ${result.url}${dims} .>] *** ${alt}`);
+          }
         } else {
-          this.selection.replace(`"${file.name}":${result.url}`);
+          this.formatter.link(result.url, file.name);
         }
       } catch (err) {
         const error = err instanceof Error ? err : new Error(String(err));
@@ -534,6 +551,15 @@ export class TexyEditor implements TexyEditorAPI {
   }
 
   private handleImage(): void {
+    if (this.mode.name === 'markdown') {
+      this.handleImageMarkdown();
+      return;
+    }
+    this.handleImageTexy();
+  }
+
+  private handleImageTexy(): void {
+    // Texy-specific image dialog with alignment, dimensions, caption and link
     const content = document.createElement('div');
     content.className = 'te-dialog-form';
 
@@ -598,7 +624,54 @@ export class TexyEditor implements TexyEditorAPI {
     });
   }
 
+  private handleImageMarkdown(): void {
+    const content = document.createElement('div');
+    content.className = 'te-dialog-form';
+
+    const urlInput = this.createFormField(content, this.strings.imageUrl, 'url', '');
+    const altInput = this.createFormField(content, this.strings.imageAlt, 'text', '');
+
+    this.dialogManager.open('image', {
+      title: this.strings.image,
+      width: 400,
+      content,
+      onSubmit: () => {
+        if (!this.validateRequired(urlInput)) return false;
+        this.formatter.image(urlInput.value, altInput.value || undefined);
+        this.focus();
+      },
+    });
+  }
+
   private handleTable(): void {
+    if (this.mode.name === 'texy') {
+      this.handleTableTexy();
+      return;
+    }
+    this.handleTableMarkdown();
+  }
+
+  private handleTableTexy(): void {
+    const content = document.createElement('div');
+    content.className = 'te-dialog-form';
+
+    const colsInput = this.createFormField(content, this.strings.tableCols, 'number', '3');
+    const rowsInput = this.createFormField(content, this.strings.tableRows, 'number', '3');
+
+    this.dialogManager.open('table', {
+      title: this.strings.table,
+      width: 320,
+      content,
+      onSubmit: () => {
+        const cols = parseInt(colsInput.value) || 3;
+        const rows = parseInt(rowsInput.value) || 3;
+        this.formatter.table(cols, rows, 'top');
+        this.focus();
+      },
+    });
+  }
+
+  private handleTableMarkdown(): void {
     const content = document.createElement('div');
     content.className = 'te-dialog-form';
 

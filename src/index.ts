@@ -18,6 +18,14 @@ export {
   imageEmbedPlugin,
 } from './parser';
 
+// Modes
+export { TexyMode } from './modes/TexyMode';
+export { MarkdownMode } from './modes/MarkdownMode';
+export type { SyntaxMode } from './modes/SyntaxMode';
+
+// Preview
+export { MarkdownPreview } from './preview/MarkdownPreview';
+
 // i18n
 export { getStrings, registerLanguage, cs, en } from './i18n';
 

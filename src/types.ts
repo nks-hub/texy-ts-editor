@@ -5,6 +5,8 @@
 // ── Editor Options ──────────────────────────────────────────────
 
 export interface TexyEditorOptions {
+  /** Syntax dialect used by the editor toolbar and live preview */
+  syntaxMode?: 'texy' | 'markdown';
   /** Language code for i18n strings */
   language?: string;
   /** Toolbar button configuration */

@@ -1,12 +1,29 @@
 import { Selection } from './Selection';
+import type { SyntaxMode } from '../modes/SyntaxMode';
+import { TexyMode } from '../modes/TexyMode';
 
 /**
- * Texy markup insertion and toggle operations.
- * Each method manipulates the textarea selection to insert or toggle
- * Texy-formatted markup.
+ * Markup insertion and toggle operations.
+ * Uses SyntaxMode to produce correct markup for the active dialect.
  */
 export class TexyFormatter {
-  constructor(private selection: Selection) {}
+  private mode: SyntaxMode;
+
+  constructor(private selection: Selection, mode?: SyntaxMode) {
+    this.mode = mode ?? new TexyMode();
+  }
+
+  setMode(mode: SyntaxMode): void {
+    this.mode = mode;
+  }
+
+  getMode(): SyntaxMode {
+    return this.mode;
+  }
+
+  isMarkdown(): boolean {
+    return this.mode.name === 'markdown';
+  }
 
   // ── Inline Phrases ──────────────────────────────────────────
 
@@ -33,7 +50,7 @@ export class TexyFormatter {
   }
 
   deleted(): void {
-    this.toggleInline('--');
+    this.toggleInline(this.isMarkdown() ? '~~' : '--');
   }
 
   inserted(): void {
@@ -65,15 +82,26 @@ export class TexyFormatter {
   link(url: string, text?: string): void {
     if (!url) return;
 
-    if (text) {
-      this.selection.replace(`"${text}":${url}`);
-    } else if (this.selection.isCursor()) {
-      this.selection.replace(`"":${url}`);
-      // Place cursor inside the quotes
-      const state = this.selection.getState();
-      this.selection.setCursor(state.start + 1);
+    if (this.isMarkdown()) {
+      if (text) {
+        this.selection.replace(`[${text}](${url})`);
+      } else if (this.selection.isCursor()) {
+        this.selection.replace(`[](${url})`);
+        const state = this.selection.getState();
+        this.selection.setCursor(state.start + 1);
+      } else {
+        this.selection.phrase('[', `](${url})`);
+      }
     } else {
-      this.selection.phrase('"', `":${url}`);
+      if (text) {
+        this.selection.replace(`"${text}":${url}`);
+      } else if (this.selection.isCursor()) {
+        this.selection.replace(`"":${url}`);
+        const state = this.selection.getState();
+        this.selection.setCursor(state.start + 1);
+      } else {
+        this.selection.phrase('"', `":${url}`);
+      }
     }
   }
 
@@ -99,6 +127,15 @@ export class TexyFormatter {
     align?: '<' | '>' | '<>' | '*',
     options?: { width?: number; height?: number; caption?: string; link?: string },
   ): void {
+    if (this.isMarkdown()) {
+      let markup = `![${alt || ''}](${src})`;
+      if (options?.link) {
+        markup = `[${markup}](${options.link})`;
+      }
+      this.selection.replace(markup);
+      return;
+    }
+
     let markup = '';
 
     // Center alignment needs paragraph modifier
@@ -134,10 +171,7 @@ export class TexyFormatter {
   // ── Headings ──────────────────────────────────────────────────
 
   heading(level: 1 | 2 | 3 | 4): void {
-    const underlineChars: Record<number, string> = { 1: '#', 2: '*', 3: '=', 4: '-' };
-    const char = underlineChars[level];
     const lf = this.selection.lf;
-
     this.selection.selectBlock();
 
     if (this.selection.isCursor()) {
@@ -145,17 +179,31 @@ export class TexyFormatter {
     }
 
     const text = this.selection.text();
-    const underline = char.repeat(Math.max(3, text.length));
-    this.selection.tag('', lf + underline);
+
+    if (this.isMarkdown()) {
+      const hashes = '#'.repeat(level);
+      this.selection.replace(`${hashes} ${text}`);
+    } else {
+      const underlineChars: Record<number, string> = { 1: '#', 2: '*', 3: '=', 4: '-' };
+      const char = underlineChars[level];
+      const underline = char.repeat(Math.max(3, text.length));
+      this.selection.tag('', lf + underline);
+    }
   }
 
   headingWithPrompt(level: 1 | 2 | 3 | 4, text: string): void {
     if (!text) return;
-    const underlineChars: Record<number, string> = { 1: '#', 2: '*', 3: '=', 4: '-' };
-    const char = underlineChars[level];
     const lf = this.selection.lf;
-    const underline = char.repeat(Math.max(3, text.length));
-    this.selection.tag(text + lf + underline + lf, '');
+
+    if (this.isMarkdown()) {
+      const hashes = '#'.repeat(level);
+      this.selection.tag(`${hashes} ${text}${lf}`, '');
+    } else {
+      const underlineChars: Record<number, string> = { 1: '#', 2: '*', 3: '=', 4: '-' };
+      const char = underlineChars[level];
+      const underline = char.repeat(Math.max(3, text.length));
+      this.selection.tag(text + lf + underline + lf, '');
+    }
   }
 
   // ── Lists ─────────────────────────────────────────────────────
@@ -232,8 +280,13 @@ export class TexyFormatter {
 
   codeBlock(language?: string): void {
     const lf = this.selection.lf;
-    const lang = language ? ' ' + language : '';
-    this.selection.tag(`/--code${lang}${lf}`, `${lf}\\--`);
+    if (this.isMarkdown()) {
+      const lang = language ?? '';
+      this.selection.tag(`\`\`\`${lang}${lf}`, `${lf}\`\`\``);
+    } else {
+      const lang = language ? ' ' + language : '';
+      this.selection.tag(`/--code${lang}${lf}`, `${lf}\\--`);
+    }
   }
 
   htmlBlock(): void {
@@ -259,7 +312,8 @@ export class TexyFormatter {
 
   horizontalRule(): void {
     const lf = this.selection.lf;
-    const rule = `${lf}${lf}-------------------${lf}${lf}`;
+    const hr = this.isMarkdown() ? '---' : '-------------------';
+    const rule = `${lf}${lf}${hr}${lf}${lf}`;
 
     if (this.selection.isCursor()) {
       this.selection.tag(rule, '');
@@ -274,24 +328,39 @@ export class TexyFormatter {
     const lf = this.selection.lf;
     let markup = lf;
 
-    for (let i = 0; i < rows; i++) {
-      // Top header separator
-      if (header === 'top' && i === 1) {
+    if (this.isMarkdown()) {
+      for (let i = 0; i < rows; i++) {
         markup += '|';
         for (let j = 0; j < cols; j++) {
-          markup += '--------';
+          markup += ` ${header === 'top' && i === 0 ? 'Header' : '  '} |`;
         }
         markup += lf;
-      }
-
-      for (let j = 0; j < cols; j++) {
-        if (header === 'left' && j === 0) {
-          markup += '|* \t';
-        } else {
-          markup += '| \t';
+        if (header === 'top' && i === 0) {
+          markup += '|';
+          for (let j = 0; j < cols; j++) {
+            markup += ' --- |';
+          }
+          markup += lf;
         }
       }
-      markup += '|' + lf;
+    } else {
+      for (let i = 0; i < rows; i++) {
+        if (header === 'top' && i === 1) {
+          markup += '|';
+          for (let j = 0; j < cols; j++) {
+            markup += '--------';
+          }
+          markup += lf;
+        }
+        for (let j = 0; j < cols; j++) {
+          if (header === 'left' && j === 0) {
+            markup += '|* \t';
+          } else {
+            markup += '| \t';
+          }
+        }
+        markup += '|' + lf;
+      }
     }
     markup += lf;
 
@@ -359,7 +428,7 @@ export class TexyFormatter {
   private getBullet(type: string, index: number): string {
     switch (type) {
       case 'ul': return '-';
-      case 'ol': return index + ')';
+      case 'ol': return index + (this.isMarkdown() ? '.' : ')');
       case 'bq': return '>';
       case 'indent': return '';
       case 'romans': return this.toRoman(index) + ')';
