@@ -162,6 +162,8 @@ export interface TexyEditorStrings {
   heading2: string;
   heading3: string;
   heading4: string;
+  heading5: string;
+  heading6: string;
   link: string;
   linkUrl: string;
   linkText: string;
@@ -184,6 +186,11 @@ export interface TexyEditorStrings {
   symbol: string;
   acronym: string;
   acronymTitle: string;
+  highlight: string;
+  taskList: string;
+  footnote: string;
+  footnoteId: string;
+  footnoteText: string;
   alignLeft: string;
   alignRight: string;
   alignCenter: string;

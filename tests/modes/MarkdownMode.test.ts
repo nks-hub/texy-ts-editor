@@ -22,6 +22,7 @@ describe('MarkdownMode', () => {
     it('superscript marker is ^', () => { expect(mode.markers.superscript).toBe('^'); });
     it('subscript marker is ~', () => { expect(mode.markers.subscript).toBe('~'); });
     it('code marker is `', () => { expect(mode.markers.code).toBe('`'); });
+    it('highlight marker is ==', () => { expect(mode.markers.highlight).toBe('=='); });
   });
 
   // ── Inline phrases ──────────────────────────────────────────
@@ -34,6 +35,7 @@ describe('MarkdownMode', () => {
     it('superscript (single ^)', () => { expect(mode.superscript('2')).toBe('^2^'); });
     it('subscript (single ~)', () => { expect(mode.subscript('2')).toBe('~2~'); });
     it('code', () => { expect(mode.code('const x')).toBe('`const x`'); });
+    it('highlight', () => { expect(mode.highlight('important')).toBe('==important=='); });
     it('bold empty', () => { expect(mode.bold('')).toBe('****'); });
   });
 
@@ -246,6 +248,34 @@ describe('MarkdownMode', () => {
       const result = mode.tableGrid(3, 4);
       const lines = result.trim().split('\n');
       expect(lines).toHaveLength(4);
+    });
+  });
+
+  // ── Markdown-specific features ──────────────────────────────
+
+  describe('taskListItem', () => {
+    it('unchecked', () => {
+      expect(mode.taskListItem('Buy milk', false)).toBe('- [ ] Buy milk');
+    });
+
+    it('checked', () => {
+      expect(mode.taskListItem('Done', true)).toBe('- [x] Done');
+    });
+  });
+
+  describe('footnoteRef', () => {
+    it('returns [^id]', () => {
+      expect(mode.footnoteRef('1')).toBe('[^1]');
+    });
+
+    it('named footnote', () => {
+      expect(mode.footnoteRef('note')).toBe('[^note]');
+    });
+  });
+
+  describe('footnoteDefinition', () => {
+    it('returns [^id]: text', () => {
+      expect(mode.footnoteDefinition('1', 'Some detail')).toBe('[^1]: Some detail');
     });
   });
 

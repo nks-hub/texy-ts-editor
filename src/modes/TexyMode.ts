@@ -14,6 +14,7 @@ export class TexyMode implements SyntaxMode {
     superscript: '^^',
     subscript: '__',
     code: '`',
+    highlight: '**',
   } as const;
 
   // ── Inline ────────────────────────────────────────────────────
@@ -25,6 +26,7 @@ export class TexyMode implements SyntaxMode {
   superscript(text: string): string { return `^^${text}^^`; }
   subscript(text: string): string { return `__${text}__`; }
   code(text: string): string { return `\`${text}\``; }
+  highlight(text: string): string { return `**${text}**`; }
 
   // ── Links ─────────────────────────────────────────────────────
 
@@ -175,6 +177,20 @@ export class TexyMode implements SyntaxMode {
     }
 
     return markup;
+  }
+
+  // ── Task list / Footnotes (Texy fallbacks) ───────────────────
+
+  taskListItem(text: string, _checked: boolean): string {
+    return `- ${text}`;
+  }
+
+  footnoteRef(id: string): string {
+    return `((${id}))`;
+  }
+
+  footnoteDefinition(_id: string, _text: string): string {
+    return '';
   }
 
   // ── Syntax-specific ───────────────────────────────────────────

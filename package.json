@@ -1,6 +1,6 @@
 {
   "name": "@nks-hub/texy-editor",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Modern TypeScript Texy markup editor with configurable toolbar, live preview, theming, and plugin system",
   "type": "module",
   "main": "./dist/texy-editor.cjs",
@@ -52,6 +52,7 @@
   },
   "devDependencies": {
     "@types/markdown-it": "^14.1.2",
+    "@types/markdown-it-footnote": "^3.0.4",
     "@vitest/coverage-v8": "^4.0.18",
     "jsdom": "^24.1.3",
     "typescript": "^5.7.0",
@@ -64,6 +65,9 @@
   ],
   "dependencies": {
     "highlight.js": "^11.11.1",
-    "markdown-it": "^14.1.1"
+    "markdown-it": "^14.1.1",
+    "markdown-it-footnote": "^4.0.0",
+    "markdown-it-mark": "^4.0.0",
+    "markdown-it-task-lists": "^2.1.1"
   }
 }

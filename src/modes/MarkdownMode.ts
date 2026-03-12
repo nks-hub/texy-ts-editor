@@ -14,6 +14,7 @@ export class MarkdownMode implements SyntaxMode {
     superscript: '^',
     subscript: '~',
     code: '`',
+    highlight: '==',
   } as const;
 
   // ── Inline ────────────────────────────────────────────────────
@@ -25,6 +26,7 @@ export class MarkdownMode implements SyntaxMode {
   superscript(text: string): string { return `^${text}^`; }
   subscript(text: string): string { return `~${text}~`; }
   code(text: string): string { return `\`${text}\``; }
+  highlight(text: string): string { return `==${text}==`; }
 
   // ── Links ─────────────────────────────────────────────────────
 
@@ -156,6 +158,20 @@ export class MarkdownMode implements SyntaxMode {
     }
 
     return markup;
+  }
+
+  // ── Markdown-specific ─────────────────────────────────────────
+
+  taskListItem(text: string, checked: boolean): string {
+    return `- [${checked ? 'x' : ' '}] ${text}`;
+  }
+
+  footnoteRef(id: string): string {
+    return `[^${id}]`;
+  }
+
+  footnoteDefinition(id: string, text: string): string {
+    return `[^${id}]: ${text}`;
   }
 
   // ── Syntax-specific (no-op for Markdown) ──────────────────────

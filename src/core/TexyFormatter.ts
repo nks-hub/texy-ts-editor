@@ -52,6 +52,10 @@ export class TexyFormatter {
     this.toggleInline(this.mode.markers.code);
   }
 
+  highlight(): void {
+    this.toggleInline(this.mode.markers.highlight);
+  }
+
   noTexy(): void {
     this.selection.phrase("''", "''");
   }
@@ -103,7 +107,7 @@ export class TexyFormatter {
 
   // ── Headings ──────────────────────────────────────────────────
 
-  heading(level: 1 | 2 | 3 | 4): void {
+  heading(level: 1 | 2 | 3 | 4 | 5 | 6): void {
     this.selection.selectBlock();
 
     if (this.selection.isCursor()) {
@@ -114,7 +118,7 @@ export class TexyFormatter {
     this.selection.replace(this.mode.heading(text, level));
   }
 
-  headingWithPrompt(level: 1 | 2 | 3 | 4, text: string): void {
+  headingWithPrompt(level: 1 | 2 | 3 | 4 | 5 | 6, text: string): void {
     if (!text) return;
     const lf = this.selection.lf;
     this.selection.tag(this.mode.heading(text, level) + lf, '');
@@ -148,6 +152,10 @@ export class TexyFormatter {
 
   blockquote(): void {
     this.applyList('bq');
+  }
+
+  taskList(): void {
+    this.applyList('taskList');
   }
 
   // ── Indentation ───────────────────────────────────────────────
@@ -247,6 +255,31 @@ export class TexyFormatter {
     }
   }
 
+  // ── Footnotes ────────────────────────────────────────────────
+
+  footnote(id: string, text: string): void {
+    const lf = this.selection.lf;
+    const ref = this.mode.footnoteRef(id);
+    const def = this.mode.footnoteDefinition(id, text);
+
+    if (this.selection.isCursor()) {
+      // Insert reference at cursor, definition at end
+      this.selection.tag(ref, '');
+      if (def) {
+        const value = this.selection.getValue();
+        this.selection.setValue(value + lf + lf + def);
+      }
+    } else {
+      // Wrap selection as footnote text
+      const selectedText = this.selection.text();
+      this.selection.replace(ref);
+      if (def) {
+        const value = this.selection.getValue();
+        this.selection.setValue(value + lf + lf + this.mode.footnoteDefinition(id, selectedText));
+      }
+    }
+  }
+
   // ── Symbols ───────────────────────────────────────────────────
 
   insertSymbol(symbol: string): void {
@@ -299,6 +332,7 @@ export class TexyFormatter {
       case 'ul': return '-';
       case 'ol': return this.mode.orderedBullet(index);
       case 'bq': return '>';
+      case 'taskList': return '- [ ]';
       case 'indent': return '';
       case 'romans': return this.toRoman(index) + ')';
       case 'smallRomans': return this.toRoman(index).toLowerCase() + ')';

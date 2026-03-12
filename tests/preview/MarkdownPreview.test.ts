@@ -200,6 +200,40 @@ describe('MarkdownPreview', () => {
     });
   });
 
+  // ── Highlight (==mark==) ────────────────────────────────────
+
+  describe('highlight/mark', () => {
+    it('renders ==text== as <mark>', () => {
+      const result = preview.render('This is ==highlighted== text');
+      expect(result).toContain('<mark>highlighted</mark>');
+    });
+  });
+
+  // ── Task lists ─────────────────────────────────────────────
+
+  describe('task lists', () => {
+    it('renders unchecked task', () => {
+      const result = preview.render('- [ ] Todo item');
+      expect(result).toContain('type="checkbox"');
+    });
+
+    it('renders checked task', () => {
+      const result = preview.render('- [x] Done item');
+      expect(result).toContain('checked');
+    });
+  });
+
+  // ── Footnotes ──────────────────────────────────────────────
+
+  describe('footnotes', () => {
+    it('renders footnote reference and definition', () => {
+      const md = 'Text with footnote[^1]\n\n[^1]: Footnote content';
+      const result = preview.render(md);
+      expect(result).toContain('Footnote content');
+      expect(result).toContain('footnote');
+    });
+  });
+
   // ── Return type ──────────────────────────────────────────────
 
   describe('render()', () => {

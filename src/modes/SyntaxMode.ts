@@ -17,6 +17,7 @@ export interface SyntaxMode {
     readonly superscript: string;
     readonly subscript: string;
     readonly code: string;
+    readonly highlight: string;
   };
 
   // ── Inline wrap (produce complete markup from text) ────────────
@@ -28,6 +29,7 @@ export interface SyntaxMode {
   superscript(text: string): string;
   subscript(text: string): string;
   code(text: string): string;
+  highlight(text: string): string;
 
   // ── Links ─────────────────────────────────────────────────────
 
@@ -77,6 +79,15 @@ export interface SyntaxMode {
   table(rows: string[][], header?: boolean): string;
   /** Generate table grid markup from dimensions */
   tableGrid(cols: number, rows: number, header?: 'none' | 'top' | 'left'): string;
+
+  // ── Markdown-specific features (may be no-op in Texy) ─────────
+
+  /** Task list item — GFM checkbox syntax */
+  taskListItem(text: string, checked: boolean): string;
+  /** Footnote reference — e.g. [^1] */
+  footnoteRef(id: string): string;
+  /** Footnote definition — e.g. [^1]: text */
+  footnoteDefinition(id: string, text: string): string;
 
   // ── Syntax-specific features (may be no-op) ───────────────────
 

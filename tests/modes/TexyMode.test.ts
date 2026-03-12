@@ -197,6 +197,36 @@ describe('TexyMode', () => {
     });
   });
 
+  // ── Markdown-specific fallbacks ──────────────────────────────
+
+  describe('taskListItem (fallback)', () => {
+    it('returns plain list item', () => {
+      expect(mode.taskListItem('item', false)).toBe('- item');
+    });
+
+    it('ignores checked state', () => {
+      expect(mode.taskListItem('item', true)).toBe('- item');
+    });
+  });
+
+  describe('footnoteRef (fallback)', () => {
+    it('uses Texy inline footnote', () => {
+      expect(mode.footnoteRef('1')).toBe('((1))');
+    });
+  });
+
+  describe('footnoteDefinition (fallback)', () => {
+    it('returns empty (Texy has inline footnotes)', () => {
+      expect(mode.footnoteDefinition('1', 'text')).toBe('');
+    });
+  });
+
+  describe('highlight (fallback)', () => {
+    it('uses bold as fallback', () => {
+      expect(mode.highlight('text')).toBe('**text**');
+    });
+  });
+
   // ── Syntax-specific ───────────────────────────────────────
 
   describe('syntax-specific', () => {

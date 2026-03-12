@@ -447,6 +447,11 @@ export class TexyEditor implements TexyEditorAPI {
       heading2: () => this.handleHeading(2),
       heading3: () => this.handleHeading(3),
       heading4: () => this.handleHeading(4),
+      heading5: () => this.handleHeading(5),
+      heading6: () => this.handleHeading(6),
+      highlight: () => this.formatter.highlight(),
+      taskList: () => this.formatter.taskList(),
+      footnote: () => this.handleFootnote(),
       link: () => this.handleLink(),
       image: () => this.handleImage(),
       ul: () => this.formatter.unorderedList(),
@@ -522,7 +527,7 @@ export class TexyEditor implements TexyEditorAPI {
     input.click();
   }
 
-  private handleHeading(level: 1 | 2 | 3 | 4): void {
+  private handleHeading(level: 1 | 2 | 3 | 4 | 5 | 6): void {
     if (this.selection.isCursor()) {
       const text = prompt(this.strings.headingPrompt, '');
       if (text) this.formatter.headingWithPrompt(level, text);
@@ -757,6 +762,25 @@ export class TexyEditor implements TexyEditorAPI {
       width: 400,
       content,
       onSubmit: () => {},
+    });
+  }
+
+  private handleFootnote(): void {
+    const content = document.createElement('div');
+    content.className = 'te-dialog-form';
+
+    const idInput = this.createFormField(content, this.strings.footnoteId, 'text', '1');
+    const textInput = this.createFormField(content, this.strings.footnoteText, 'text', '');
+
+    this.dialogManager.open('footnote', {
+      title: this.strings.footnote,
+      width: 400,
+      content,
+      onSubmit: () => {
+        if (!this.validateRequired(idInput, textInput)) return false;
+        this.formatter.footnote(idInput.value, textInput.value);
+        this.focus();
+      },
     });
   }
 
