@@ -44,6 +44,8 @@ export interface SyntaxMode {
 
   // ── Images ────────────────────────────────────────────────────
 
+  /** Returns image dialog field configuration for this mode */
+  getImageDialogFields(): 'simple' | 'extended';
   image(alt: string, url: string): string;
   imageWithOptions(
     src: string,

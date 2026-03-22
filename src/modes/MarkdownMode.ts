@@ -52,6 +52,10 @@ export class MarkdownMode implements SyntaxMode {
 
   // ── Images ────────────────────────────────────────────────────
 
+  getImageDialogFields(): 'simple' | 'extended' {
+    return 'simple';
+  }
+
   image(alt: string, url: string): string {
     return `![${alt}](${url})`;
   }

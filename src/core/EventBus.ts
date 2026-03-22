@@ -1,31 +1,29 @@
 import type { TexyEditorEvents, TexyEventHandler } from '../types';
 
-type EventMap = TexyEditorEvents;
+export class EventBus<TMap extends Record<keyof TMap, unknown> = TexyEditorEvents> {
+  private listeners = new Map<keyof TMap, Set<TexyEventHandler<TMap[keyof TMap]>>>();
 
-export class EventBus {
-  private listeners = new Map<string, Set<TexyEventHandler<unknown>>>();
-
-  on<K extends keyof EventMap>(event: K, handler: TexyEventHandler<EventMap[K]>): void {
-    if (!this.listeners.has(event as string)) {
-      this.listeners.set(event as string, new Set());
+  on<K extends keyof TMap>(event: K, handler: TexyEventHandler<TMap[K]>): void {
+    if (!this.listeners.has(event)) {
+      this.listeners.set(event, new Set());
     }
-    this.listeners.get(event as string)!.add(handler as TexyEventHandler<unknown>);
+    this.listeners.get(event)!.add(handler as TexyEventHandler<TMap[keyof TMap]>);
   }
 
-  off<K extends keyof EventMap>(event: K, handler: TexyEventHandler<EventMap[K]>): void {
-    this.listeners.get(event as string)?.delete(handler as TexyEventHandler<unknown>);
+  off<K extends keyof TMap>(event: K, handler: TexyEventHandler<TMap[K]>): void {
+    this.listeners.get(event)?.delete(handler as TexyEventHandler<TMap[keyof TMap]>);
   }
 
-  emit<K extends keyof EventMap>(
+  emit<K extends keyof TMap>(
     event: K,
-    ...args: EventMap[K] extends void ? [] : [data: EventMap[K]]
+    ...args: TMap[K] extends void ? [] : [data: TMap[K]]
   ): void {
-    const data = args[0] as EventMap[K];
-    this.listeners.get(event as string)?.forEach((handler) => {
+    const data = args[0] as TMap[K];
+    this.listeners.get(event)?.forEach((handler) => {
       try {
         handler(data);
       } catch (err) {
-        console.error(`[TexyEditor] Event handler error for "${event as string}":`, err);
+        console.error(`[TexyEditor] Event handler error for "${String(event)}":`, err);
       }
     });
   }

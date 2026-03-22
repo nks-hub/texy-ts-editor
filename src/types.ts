@@ -8,7 +8,7 @@ import type { SyntaxMode } from './modes/SyntaxMode';
 
 export interface TexyEditorOptions {
   /** Syntax dialect used by the editor toolbar and live preview */
-  syntaxMode?: 'texy' | 'markdown';
+  syntaxMode?: 'texy' | 'markdown' | SyntaxMode;
   /** Language code for i18n strings */
   language?: string;
   /** Toolbar button configuration */
@@ -90,7 +90,7 @@ export interface TexyEditorEvents {
   'preview:render': { html: string };
   'upload:start': { file: File };
   'upload:complete': { url: string; file: File };
-  'upload:error': { error: Error; file: File };
+  'upload:error': { error: Error; file: File; message: string };
   'fullscreen:toggle': { active: boolean };
   'undo': void;
   'redo': void;

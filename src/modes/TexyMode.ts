@@ -52,6 +52,10 @@ export class TexyMode implements SyntaxMode {
 
   // ── Images ────────────────────────────────────────────────────
 
+  getImageDialogFields(): 'simple' | 'extended' {
+    return 'extended';
+  }
+
   image(alt: string, url: string): string {
     if (alt) {
       return `[* ${url} .( ${alt}) *]`;
