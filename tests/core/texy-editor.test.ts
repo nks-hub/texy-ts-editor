@@ -599,3 +599,164 @@ describe('TexyEditor — view DOM effects', () => {
     expect(editor.getContainer().classList.contains('te-view-split')).toBe(true);
   });
 });
+
+// ── Action dispatch ───────────────────────────────────────────────
+
+describe('TexyEditor action dispatch', () => {
+  let ta: HTMLTextAreaElement;
+  let editor: TexyEditor;
+
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    ta = makeTextarea('hello world');
+    ta.setSelectionRange(0, 11);
+    editor = makeEditor(ta);
+  });
+
+  afterEach(() => {
+    editor.destroy();
+  });
+
+  it('execAction("bold") modifies the textarea value with bold markers', () => {
+    editor.execAction('bold');
+    expect(editor.getValue()).toContain('**');
+  });
+
+  it('execAction("italic") modifies the textarea value with italic markers', () => {
+    editor.execAction('italic');
+    expect(editor.getValue()).toContain('*');
+  });
+
+  it('execAction("ul") inserts an unordered list', () => {
+    editor.execAction('ul');
+    expect(editor.getValue()).toContain('- ');
+  });
+
+  it('execAction("ol") inserts an ordered list', () => {
+    editor.execAction('ol');
+    // TexyMode ordered bullet is "1."
+    expect(editor.getValue()).toMatch(/\d[.)]/);
+  });
+
+  it('execAction("hr") inserts a horizontal rule', () => {
+    editor.execAction('hr');
+    expect(editor.getValue()).toMatch(/---+|---/);
+  });
+
+  it('execAction("link") opens the link dialog', () => {
+    editor.execAction('link');
+    const dialog = document.querySelector('dialog');
+    expect(dialog).not.toBeNull();
+    editor.getDialogManager().close('link');
+  });
+
+  it('execAction("image") opens the image dialog', () => {
+    editor.execAction('image');
+    const dialog = document.querySelector('dialog');
+    expect(dialog).not.toBeNull();
+    editor.getDialogManager().close('image');
+  });
+
+  it('execAction("table") opens the table dialog', () => {
+    editor.execAction('table');
+    const dialog = document.querySelector('dialog');
+    expect(dialog).not.toBeNull();
+    editor.getDialogManager().close('table');
+  });
+
+  it('execAction("color") opens the color dialog', () => {
+    editor.execAction('color');
+    const dialog = document.querySelector('dialog');
+    expect(dialog).not.toBeNull();
+    editor.getDialogManager().close('color');
+  });
+
+  it('execAction("symbol") opens the symbol dialog', () => {
+    editor.execAction('symbol');
+    const dialog = document.querySelector('dialog');
+    expect(dialog).not.toBeNull();
+    editor.getDialogManager().close('symbol');
+  });
+
+  it('execAction("footnote") opens the footnote dialog', () => {
+    editor.execAction('footnote');
+    const dialog = document.querySelector('dialog');
+    expect(dialog).not.toBeNull();
+    editor.getDialogManager().close('footnote');
+  });
+
+  it('execAction("acronym") opens the acronym dialog', () => {
+    editor.execAction('acronym');
+    const dialog = document.querySelector('dialog');
+    expect(dialog).not.toBeNull();
+    editor.getDialogManager().close('acronym');
+  });
+
+  it('execAction emits toolbar:action event with button name', () => {
+    const handler = vi.fn();
+    editor.on('toolbar:action', handler);
+    editor.execAction('bold');
+    expect(handler).toHaveBeenCalledWith({ button: 'bold' });
+  });
+});
+
+// ── Preview rendering ─────────────────────────────────────────────
+
+describe('TexyEditor — preview rendering', () => {
+  beforeEach(() => {
+    document.body.innerHTML = '';
+  });
+
+  it('setView("preview") triggers renderPreview and previewContent has content', () => {
+    const ta = makeTextarea('**hello world**');
+    const editor = makeEditor(ta, { livePreview: true });
+    editor.setView('preview');
+
+    const previewContent = editor.getContainer().querySelector('.te-preview-content')!;
+    expect(previewContent.innerHTML).not.toBe('');
+    editor.destroy();
+  });
+
+  it('setView("split") shows preview content', () => {
+    const ta = makeTextarea('Some text');
+    const editor = makeEditor(ta, { livePreview: true });
+    editor.setView('split');
+
+    const previewArea = editor.getContainer().querySelector<HTMLElement>('.te-preview-area')!;
+    expect(previewArea.style.display).not.toBe('none');
+    editor.destroy();
+  });
+
+  it('preview shows empty message when textarea is empty', () => {
+    const ta = makeTextarea('');
+    const editor = makeEditor(ta, { livePreview: true });
+    editor.setView('preview');
+
+    const previewContent = editor.getContainer().querySelector('.te-preview-content')!;
+    expect(previewContent.innerHTML).toContain('te-preview-empty');
+    editor.destroy();
+  });
+
+  it('MarkdownMode editor renders markdown preview client-side', () => {
+    const ta = makeTextarea('**bold text**');
+    const editor = makeEditor(ta, { syntaxMode: 'markdown', livePreview: true });
+    editor.setView('preview');
+
+    const previewContent = editor.getContainer().querySelector('.te-preview-content')!;
+    // MarkdownPreview renders HTML — should contain <strong> or similar markup
+    expect(previewContent.innerHTML).not.toBe('');
+    expect(previewContent.innerHTML).not.toContain('te-preview-empty');
+    editor.destroy();
+  });
+
+  it('setView("preview") then setView("edit") goes back to edit view', () => {
+    const ta = makeTextarea('text');
+    const editor = makeEditor(ta);
+    editor.setView('preview');
+    editor.setView('edit');
+    expect(editor.getView()).toBe('edit');
+    const editArea = editor.getContainer().querySelector<HTMLElement>('.te-edit-area')!;
+    expect(editArea.style.display).not.toBe('none');
+    editor.destroy();
+  });
+});
