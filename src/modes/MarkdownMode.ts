@@ -215,4 +215,13 @@ export class MarkdownMode implements SyntaxMode {
   commentBlockWrapper(): { prefix: string; suffix: string } {
     return { prefix: '<!-- ', suffix: ' -->' };
   }
+
+  divBlockWrapper(modifier?: string): { prefix: string; suffix: string } {
+    const cls = modifier ? ` class="${modifier}"` : '';
+    return { prefix: `<div${cls}>\n`, suffix: '\n</div>' };
+  }
+
+  textBlockWrapper(): { prefix: string; suffix: string } {
+    return { prefix: '```\n', suffix: '\n```' };
+  }
 }

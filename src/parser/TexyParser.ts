@@ -403,7 +403,7 @@ export class TexyParser {
       // Check for nested list
       const trimmed = item.trim();
       const nestedList = this.tryList(trimmed);
-      if (nestedList && trimmed !== item.trim()) {
+      if (nestedList && trimmed !== item) {
         html += `<li>${nestedList}</li>\n`;
       } else {
         html += `<li>${this.parseInline(trimmed)}</li>\n`;

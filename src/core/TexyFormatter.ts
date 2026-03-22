@@ -202,14 +202,13 @@ export class TexyFormatter {
   }
 
   divBlock(modifier?: string): void {
-    const lf = this.selection.lf;
-    const mod = modifier ? ` ${modifier}` : '';
-    this.selection.tag(`/--div${mod}${lf}`, `${lf}\\--`);
+    const { prefix, suffix } = this.mode.divBlockWrapper(modifier);
+    this.selection.tag(prefix, suffix);
   }
 
   textBlock(): void {
-    const lf = this.selection.lf;
-    this.selection.tag(`/--text${lf}`, `${lf}\\--`);
+    const { prefix, suffix } = this.mode.textBlockWrapper();
+    this.selection.tag(prefix, suffix);
   }
 
   commentBlock(): void {

@@ -237,4 +237,13 @@ export class TexyMode implements SyntaxMode {
   commentBlockWrapper(): { prefix: string; suffix: string } {
     return { prefix: '/--comment\n', suffix: '\n\\--' };
   }
+
+  divBlockWrapper(modifier?: string): { prefix: string; suffix: string } {
+    const mod = modifier ? ` ${modifier}` : '';
+    return { prefix: `/--div${mod}\n`, suffix: '\n\\--' };
+  }
+
+  textBlockWrapper(): { prefix: string; suffix: string } {
+    return { prefix: '/--text\n', suffix: '\n\\--' };
+  }
 }

@@ -114,4 +114,8 @@ export interface SyntaxMode {
   htmlBlockWrapper(): { prefix: string; suffix: string };
   /** Comment block wrapper */
   commentBlockWrapper(): { prefix: string; suffix: string };
+  /** Div block wrapper — Texy: /--div, Markdown: <div> */
+  divBlockWrapper(modifier?: string): { prefix: string; suffix: string };
+  /** Text/preformatted block wrapper — Texy: /--text, Markdown: ``` */
+  textBlockWrapper(): { prefix: string; suffix: string };
 }
