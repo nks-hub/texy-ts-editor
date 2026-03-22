@@ -242,15 +242,11 @@ export class TexyEditor implements TexyEditorAPI {
   execAction(name: string): void {
     const action = this.actions[name];
     if (action) {
-      // In preview mode, switch to split first — only run inline formatting if there's a selection
+      // In preview mode, just switch to edit — user can't select source text in preview
       if (this.currentView === 'preview') {
-        this.setView('split');
+        this.setView('edit');
         this.textarea.focus();
-        // If no text is selected, just switch view without applying action
-        if (this.textarea.selectionStart === this.textarea.selectionEnd) {
-          this.events.emit('toolbar:action', { button: name });
-          return;
-        }
+        return;
       }
       this.textarea.focus();
       action();
