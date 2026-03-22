@@ -263,49 +263,53 @@ export class TexyEditor implements TexyEditorAPI {
     const range = sel.getRangeAt(0);
     if (!this.previewContent.contains(range.commonAncestorContainer)) return;
 
-    const selectedText = sel.toString().trim();
-    if (!selectedText) return;
+    const rawSelected = sel.toString();
+    if (!rawSelected.trim()) return;
 
-    // Count which occurrence of selectedText this is in preview's text content
-    const previewFullText = this.previewContent.textContent ?? '';
-    const previewOffset = this.getSelectionOffsetInContainer(range, this.previewContent);
+    // Normalize: replace non-breaking spaces with regular spaces
+    const normalize = (s: string) => s.replace(/\u00a0/g, ' ');
+    const selectedText = normalize(rawSelected).trim();
+
+    // Get character offset of selection start within preview's full normalized text
+    const preRange = document.createRange();
+    preRange.selectNodeContents(this.previewContent);
+    preRange.setEnd(range.startContainer, range.startOffset);
+    const previewOffset = normalize(preRange.toString()).length;
+
+    // Normalize preview full text for occurrence counting
+    const previewText = normalize(this.previewContent.textContent ?? '');
+
+    // Count which occurrence of selectedText this is in preview text
     let occurrence = 0;
     let searchFrom = 0;
-    while (searchFrom <= previewOffset) {
-      const idx = previewFullText.indexOf(selectedText, searchFrom);
-      if (idx === -1 || idx > previewOffset) break;
+    while (true) {
+      const idx = previewText.indexOf(selectedText, searchFrom);
+      if (idx === -1) break;
       occurrence++;
+      if (idx >= previewOffset) break;
       searchFrom = idx + 1;
     }
     if (occurrence === 0) occurrence = 1;
 
-    // Find the same Nth occurrence in textarea source
+    // Find the Nth occurrence in source text
     const source = this.textarea.value;
-    let found = 0;
-    let sourceFrom = 0;
-    while (found < occurrence) {
-      const idx = source.indexOf(selectedText, sourceFrom);
-      if (idx === -1) break;
-      found++;
-      if (found === occurrence) {
-        this.textarea.setSelectionRange(idx, idx + selectedText.length);
-        return;
-      }
-      sourceFrom = idx + 1;
-    }
-
-    // Fallback: first occurrence
-    const fallback = source.indexOf(selectedText);
-    if (fallback !== -1) {
-      this.textarea.setSelectionRange(fallback, fallback + selectedText.length);
+    const sourceIdx = this.findNthOccurrence(source, selectedText, occurrence);
+    if (sourceIdx !== -1) {
+      this.textarea.setSelectionRange(sourceIdx, sourceIdx + selectedText.length);
     }
   }
 
-  private getSelectionOffsetInContainer(range: Range, container: Node): number {
-    const preRange = document.createRange();
-    preRange.selectNodeContents(container);
-    preRange.setEnd(range.startContainer, range.startOffset);
-    return preRange.toString().length;
+  private findNthOccurrence(haystack: string, needle: string, n: number): number {
+    let found = 0;
+    let from = 0;
+    while (found < n) {
+      const idx = haystack.indexOf(needle, from);
+      if (idx === -1) return found > 0 ? this.findNthOccurrence(haystack, needle, found) : -1;
+      found++;
+      if (found === n) return idx;
+      from = idx + 1;
+    }
+    return -1;
   }
 
   on<K extends keyof TexyEditorEvents>(event: K, handler: TexyEventHandler<TexyEditorEvents[K]>): void {
