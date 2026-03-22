@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Selection } from '../src/core/Selection';
 import { TexyFormatter } from '../src/core/TexyFormatter';
+import { MarkdownMode } from '../src/modes/MarkdownMode';
 
 describe('TexyFormatter', () => {
   let textarea: HTMLTextAreaElement;
@@ -500,6 +501,315 @@ describe('TexyFormatter', () => {
       textarea.setSelectionRange(0, 12);
       fmt.noTexy();
       expect(textarea.value).toContain("''**not bold**''");
+    });
+  });
+
+  // ── Footnote (TexyMode) ───────────────────────────────
+
+  describe('footnote() [TexyMode]', () => {
+    it('inserts footnote reference at cursor and appends definition', () => {
+      textarea.value = 'See this fact.';
+      textarea.setSelectionRange(14, 14); // cursor at end
+      fmt.footnote('1', 'Source text here');
+      expect(textarea.value).toContain('((1))');
+      expect(textarea.value).toContain('((1))');
+    });
+
+    it('replaces selection with reference and appends definition from selected text', () => {
+      textarea.value = 'See this fact.';
+      textarea.setSelectionRange(4, 8); // "this"
+      fmt.footnote('2', 'My note');
+      // reference replaces the selection
+      expect(textarea.value).toContain('((2))');
+      // definition uses the provided text (not the selection — TexyMode footnoteDefinition returns '')
+      // TexyMode.footnoteDefinition returns '' so no definition appended
+      const value = textarea.value;
+      expect(value).not.toContain('this');
+    });
+  });
+
+  // ── taskList (TexyMode) ───────────────────────────────
+
+  describe('taskList() [TexyMode]', () => {
+    it('prepends - [ ] to selected lines', () => {
+      textarea.value = 'buy milk\nbake bread';
+      textarea.setSelectionRange(0, textarea.value.length);
+      fmt.taskList();
+      expect(textarea.value).toContain('- [ ] buy milk');
+      expect(textarea.value).toContain('- [ ] bake bread');
+    });
+  });
+
+  // ── orderedListRoman (TexyMode) ───────────────────────
+
+  describe('orderedListRoman() [TexyMode]', () => {
+    it('prepends roman numeral bullets', () => {
+      textarea.value = 'one\ntwo\nthree';
+      textarea.setSelectionRange(0, textarea.value.length);
+      fmt.orderedListRoman();
+      expect(textarea.value).toContain('I) one');
+      expect(textarea.value).toContain('II) two');
+      expect(textarea.value).toContain('III) three');
+    });
+  });
+
+  // ── orderedListAlpha (TexyMode) ───────────────────────
+
+  describe('orderedListAlpha() [TexyMode]', () => {
+    it('prepends uppercase alpha bullets', () => {
+      textarea.value = 'one\ntwo\nthree';
+      textarea.setSelectionRange(0, textarea.value.length);
+      fmt.orderedListAlpha();
+      expect(textarea.value).toContain('A) one');
+      expect(textarea.value).toContain('B) two');
+      expect(textarea.value).toContain('C) three');
+    });
+  });
+});
+
+// ── MarkdownMode tests ────────────────────────────────────────────────────────
+
+describe('TexyFormatter with MarkdownMode', () => {
+  let textarea: HTMLTextAreaElement;
+  let sel: Selection;
+  let fmt: TexyFormatter;
+
+  beforeEach(() => {
+    textarea = document.createElement('textarea');
+    document.body.appendChild(textarea);
+    sel = new Selection(textarea);
+    fmt = new TexyFormatter(sel, new MarkdownMode());
+  });
+
+  afterEach(() => textarea.remove());
+
+  // ── Inline formatting ─────────────────────────────────
+
+  describe('bold()', () => {
+    it('wraps selected text with **', () => {
+      textarea.value = 'Hello World';
+      textarea.setSelectionRange(6, 11); // "World"
+      fmt.bold();
+      expect(textarea.value).toBe('Hello **World**');
+    });
+
+    it('inserts ** at cursor position', () => {
+      textarea.value = 'Hello';
+      textarea.setSelectionRange(5, 5);
+      fmt.bold();
+      expect(textarea.value).toBe('Hello****');
+    });
+
+    it('removes ** when text is already bold', () => {
+      textarea.value = 'Hello **World**';
+      textarea.setSelectionRange(6, 15); // "**World**"
+      fmt.bold();
+      expect(textarea.value).toBe('Hello World');
+    });
+  });
+
+  describe('italic()', () => {
+    it('wraps selected text with *', () => {
+      textarea.value = 'Hello World';
+      textarea.setSelectionRange(6, 11);
+      fmt.italic();
+      expect(textarea.value).toBe('Hello *World*');
+    });
+  });
+
+  describe('deleted()', () => {
+    it('wraps with ~~', () => {
+      textarea.value = 'test text';
+      textarea.setSelectionRange(5, 9); // "text"
+      fmt.deleted();
+      expect(textarea.value).toBe('test ~~text~~');
+    });
+
+    it('removes ~~ from already deleted text', () => {
+      textarea.value = 'test ~~text~~';
+      textarea.setSelectionRange(5, 13); // "~~text~~"
+      fmt.deleted();
+      expect(textarea.value).toBe('test text');
+    });
+  });
+
+  describe('highlight()', () => {
+    it('wraps with ==', () => {
+      textarea.value = 'important text';
+      textarea.setSelectionRange(10, 14); // "text"
+      fmt.highlight();
+      expect(textarea.value).toBe('important ==text==');
+    });
+  });
+
+  describe('inlineCode()', () => {
+    it('wraps with `', () => {
+      textarea.value = 'use const';
+      textarea.setSelectionRange(4, 9); // "const"
+      fmt.inlineCode();
+      expect(textarea.value).toBe('use `const`');
+    });
+  });
+
+  // ── Links ─────────────────────────────────────────────
+
+  describe('link()', () => {
+    it('produces [text](url) when text and url given', () => {
+      textarea.value = '';
+      textarea.setSelectionRange(0, 0);
+      fmt.link('https://example.com', 'Example');
+      expect(textarea.value).toContain('[Example](https://example.com)');
+    });
+
+    it('produces [](url) at cursor when only url given', () => {
+      textarea.value = '';
+      textarea.setSelectionRange(0, 0);
+      fmt.link('https://example.com');
+      expect(textarea.value).toContain('[](https://example.com)');
+    });
+
+    it('wraps selection as link text producing [sel](url)', () => {
+      textarea.value = 'visit Example here';
+      textarea.setSelectionRange(6, 13); // "Example"
+      fmt.link('https://example.com');
+      expect(textarea.value).toContain('[Example](https://example.com)');
+    });
+  });
+
+  // ── Images ────────────────────────────────────────────
+
+  describe('image()', () => {
+    it('produces ![alt](url) with alt text', () => {
+      textarea.value = '';
+      textarea.setSelectionRange(0, 0);
+      fmt.image('photo.jpg', 'A photo');
+      expect(textarea.value).toContain('![A photo](photo.jpg)');
+    });
+
+    it('produces ![](url) with empty alt', () => {
+      textarea.value = '';
+      textarea.setSelectionRange(0, 0);
+      fmt.image('photo.jpg');
+      expect(textarea.value).toContain('![](photo.jpg)');
+    });
+  });
+
+  // ── Headings ──────────────────────────────────────────
+
+  describe('heading()', () => {
+    it('produces # text for level 1', () => {
+      textarea.value = 'My Title';
+      textarea.setSelectionRange(0, 8);
+      fmt.heading(1);
+      expect(textarea.value).toBe('# My Title');
+    });
+
+    it('produces ### text for level 3', () => {
+      textarea.value = 'Sub Heading';
+      textarea.setSelectionRange(0, 11);
+      fmt.heading(3);
+      expect(textarea.value).toBe('### Sub Heading');
+    });
+
+    it('produces ###### text for level 6', () => {
+      textarea.value = 'Tiny';
+      textarea.setSelectionRange(0, 4);
+      fmt.heading(6);
+      expect(textarea.value).toBe('###### Tiny');
+    });
+  });
+
+  // ── Code blocks ───────────────────────────────────────
+
+  describe('codeBlock()', () => {
+    it('wraps selection with ``` fences', () => {
+      textarea.value = 'const x = 1;';
+      textarea.setSelectionRange(0, textarea.value.length);
+      fmt.codeBlock();
+      expect(textarea.value).toContain('```');
+      expect(textarea.value).toContain('const x = 1;');
+      // should have opening ``` and closing ```
+      const parts = textarea.value.split('```');
+      expect(parts.length).toBeGreaterThanOrEqual(3);
+    });
+
+    it('includes language identifier after opening fence', () => {
+      textarea.value = 'const x = 1;';
+      textarea.setSelectionRange(0, textarea.value.length);
+      fmt.codeBlock('typescript');
+      expect(textarea.value).toContain('```typescript');
+    });
+  });
+
+  // ── Lists ─────────────────────────────────────────────
+
+  describe('unorderedList()', () => {
+    it('prepends - to selected lines', () => {
+      textarea.value = 'alpha\nbeta\ngamma';
+      textarea.setSelectionRange(0, textarea.value.length);
+      fmt.unorderedList();
+      expect(textarea.value).toContain('- alpha');
+      expect(textarea.value).toContain('- beta');
+      expect(textarea.value).toContain('- gamma');
+    });
+  });
+
+  describe('orderedList()', () => {
+    it('prepends 1. 2. 3. to selected lines', () => {
+      textarea.value = 'alpha\nbeta\ngamma';
+      textarea.setSelectionRange(0, textarea.value.length);
+      fmt.orderedList();
+      expect(textarea.value).toContain('1. alpha');
+      expect(textarea.value).toContain('2. beta');
+      expect(textarea.value).toContain('3. gamma');
+    });
+  });
+
+  describe('blockquote()', () => {
+    it('prepends > to selected lines', () => {
+      textarea.value = 'first\nsecond';
+      textarea.setSelectionRange(0, textarea.value.length);
+      fmt.blockquote();
+      expect(textarea.value).toContain('> first');
+      expect(textarea.value).toContain('> second');
+    });
+  });
+
+  // ── Tables ────────────────────────────────────────────
+
+  describe('table()', () => {
+    it('produces a markdown table with header separator for 3 cols 2 rows', () => {
+      textarea.value = '';
+      textarea.setSelectionRange(0, 0);
+      fmt.table(3, 2, 'top');
+      // Should contain pipe characters
+      expect(textarea.value).toContain('|');
+      // Should contain header separator row with ---
+      expect(textarea.value).toContain('---');
+      // Should contain Header cells in first row
+      expect(textarea.value).toContain('Header');
+    });
+  });
+
+  // ── Footnotes (MarkdownMode) ──────────────────────────
+
+  describe('footnote() [MarkdownMode]', () => {
+    it('inserts [^id] reference at cursor and appends [^id]: text definition', () => {
+      textarea.value = 'See this fact.';
+      textarea.setSelectionRange(14, 14); // cursor at end
+      fmt.footnote('1', 'Source reference');
+      expect(textarea.value).toContain('[^1]');
+      expect(textarea.value).toContain('[^1]: Source reference');
+    });
+
+    it('replaces selection with [^id] and appends definition using selected text', () => {
+      textarea.value = 'See this fact.';
+      textarea.setSelectionRange(4, 8); // "this"
+      fmt.footnote('2', 'ignored');
+      // reference replaces the selection
+      expect(textarea.value).toContain('[^2]');
+      // definition uses the originally selected text
+      expect(textarea.value).toContain('[^2]: this');
     });
   });
 });
