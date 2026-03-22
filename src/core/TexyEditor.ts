@@ -242,6 +242,10 @@ export class TexyEditor implements TexyEditorAPI {
   execAction(name: string): void {
     const action = this.actions[name];
     if (action) {
+      // Sync preview selection to textarea before executing action
+      if (this.currentView !== 'edit') {
+        this.syncPreviewSelectionToTextarea();
+      }
       this.textarea.focus();
       action();
       this.events.emit('toolbar:action', { button: name });
@@ -249,6 +253,33 @@ export class TexyEditor implements TexyEditorAPI {
       if (this.currentView !== 'edit') {
         this.renderPreview();
       }
+    }
+  }
+
+  private syncPreviewSelectionToTextarea(): void {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed || !sel.rangeCount) return;
+
+    // Check if selection is inside our preview area
+    const range = sel.getRangeAt(0);
+    if (!this.previewContent.contains(range.commonAncestorContainer)) return;
+
+    const selectedText = sel.toString().trim();
+    if (!selectedText) return;
+
+    // Find the selected text in textarea value
+    const source = this.textarea.value;
+    const idx = source.indexOf(selectedText);
+    if (idx !== -1) {
+      this.textarea.setSelectionRange(idx, idx + selectedText.length);
+      return;
+    }
+
+    // If exact match not found, try normalized (without extra whitespace)
+    const normalized = selectedText.replace(/\s+/g, ' ');
+    const normIdx = source.indexOf(normalized);
+    if (normIdx !== -1) {
+      this.textarea.setSelectionRange(normIdx, normIdx + normalized.length);
     }
   }
 
