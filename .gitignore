@@ -1,6 +1,8 @@
 node_modules/
 dist/
 demo-dist/
+coverage/
+test-results/
 *.tsbuildinfo
 
 # Editor/IDE local configs
