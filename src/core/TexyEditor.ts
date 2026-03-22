@@ -232,7 +232,7 @@ export class TexyEditor implements TexyEditorAPI {
     if (state) {
       this.textarea.value = state.value;
       this.selection.select(state.cursorStart, state.cursorEnd - state.cursorStart);
-      this.events.emit('undo', undefined as never);
+      this.events.emit('undo');
     }
   }
 
@@ -241,7 +241,7 @@ export class TexyEditor implements TexyEditorAPI {
     if (state) {
       this.textarea.value = state.value;
       this.selection.select(state.cursorStart, state.cursorEnd - state.cursorStart);
-      this.events.emit('redo', undefined as never);
+      this.events.emit('redo');
     }
   }
 
@@ -270,6 +270,10 @@ export class TexyEditor implements TexyEditorAPI {
 
   getStrings(): TexyEditorStrings {
     return this.strings;
+  }
+
+  getMode(): SyntaxMode {
+    return this.mode;
   }
 
   getDialogManager(): DialogManager {
@@ -327,7 +331,7 @@ export class TexyEditor implements TexyEditorAPI {
 
     // Cleanup
     delete this.textarea.dataset.texyEditor;
-    this.events.emit('destroy', undefined as never);
+    this.events.emit('destroy');
     this.events.removeAll();
   }
 

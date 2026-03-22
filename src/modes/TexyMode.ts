@@ -14,7 +14,7 @@ export class TexyMode implements SyntaxMode {
     superscript: '^^',
     subscript: '__',
     code: '`',
-    highlight: '**',
+    highlight: '',
   } as const;
 
   // ── Inline ────────────────────────────────────────────────────
@@ -26,7 +26,7 @@ export class TexyMode implements SyntaxMode {
   superscript(text: string): string { return `^^${text}^^`; }
   subscript(text: string): string { return `__${text}__`; }
   code(text: string): string { return `\`${text}\``; }
-  highlight(text: string): string { return `**${text}**`; }
+  highlight(text: string): string { return text; }
 
   // ── Links ─────────────────────────────────────────────────────
 
@@ -216,5 +216,21 @@ export class TexyMode implements SyntaxMode {
 
   supportsModifiers(): boolean {
     return true;
+  }
+
+  noProcess(): { prefix: string; suffix: string } {
+    return { prefix: "''", suffix: "''" };
+  }
+
+  quotedInline(): { prefix: string; suffix: string } {
+    return { prefix: '>>', suffix: '<<' };
+  }
+
+  htmlBlockWrapper(): { prefix: string; suffix: string } {
+    return { prefix: '/--html\n', suffix: '\n\\--' };
+  }
+
+  commentBlockWrapper(): { prefix: string; suffix: string } {
+    return { prefix: '/--comment\n', suffix: '\n\\--' };
   }
 }

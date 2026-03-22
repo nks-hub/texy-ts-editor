@@ -57,11 +57,13 @@ export class TexyFormatter {
   }
 
   noTexy(): void {
-    this.selection.phrase("''", "''");
+    const { prefix, suffix } = this.mode.noProcess('');
+    this.selection.phrase(prefix, suffix);
   }
 
   quoted(): void {
-    this.selection.phrase('>>', '<<');
+    const { prefix, suffix } = this.mode.quotedInline('');
+    this.selection.phrase(prefix, suffix);
   }
 
   // ── Links & References ────────────────────────────────────────
@@ -195,8 +197,8 @@ export class TexyFormatter {
   }
 
   htmlBlock(): void {
-    const lf = this.selection.lf;
-    this.selection.tag(`/--html${lf}`, `${lf}\\--`);
+    const { prefix, suffix } = this.mode.htmlBlockWrapper();
+    this.selection.tag(prefix, suffix);
   }
 
   divBlock(modifier?: string): void {
@@ -211,8 +213,8 @@ export class TexyFormatter {
   }
 
   commentBlock(): void {
-    const lf = this.selection.lf;
-    this.selection.tag(`/--comment${lf}`, `${lf}\\--`);
+    const { prefix, suffix } = this.mode.commentBlockWrapper();
+    this.selection.tag(prefix, suffix);
   }
 
   horizontalRule(): void {
@@ -293,6 +295,7 @@ export class TexyFormatter {
   // ── Private Helpers ───────────────────────────────────────────
 
   private toggleInline(marker: string): void {
+    if (!marker) return;
     this.selection.trimSelect();
     const text = this.selection.text();
     const escaped = marker.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

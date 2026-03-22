@@ -2,6 +2,8 @@
  * Public API type definitions for @nks-hub/texy-editor
  */
 
+import type { SyntaxMode } from './modes/SyntaxMode';
+
 // ── Editor Options ──────────────────────────────────────────────
 
 export interface TexyEditorOptions {
@@ -258,6 +260,8 @@ export interface TexyEditorAPI {
   getContainer(): HTMLElement;
   /** Get the i18n strings */
   getStrings(): TexyEditorStrings;
+  /** Get the current syntax mode */
+  getMode(): SyntaxMode;
   /** Destroy the editor and restore original textarea */
   destroy(): void;
 }

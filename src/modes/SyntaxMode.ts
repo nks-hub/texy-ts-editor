@@ -4,8 +4,8 @@
  * The formatter delegates ALL syntax decisions to this interface.
  */
 export interface SyntaxMode {
-  /** Identifies the syntax dialect, e.g. 'texy' or 'markdown' */
-  readonly name: string;
+  /** Identifies the syntax dialect */
+  readonly name: 'texy' | 'markdown' | (string & {});
 
   // ── Inline markers (used by formatter for toggle detection) ────
 
@@ -101,4 +101,15 @@ export interface SyntaxMode {
   alignmentPrefix(type: string): string;
   /** Whether alignment/modifier features are supported */
   supportsModifiers(): boolean;
+
+  // ── Block wrappers ───────────────────────────────────────────
+
+  /** Verbatim/no-process wrapper — Texy: ''text'', Markdown: `text` */
+  noProcess(text: string): { prefix: string; suffix: string };
+  /** Blockquote/quoted wrapper — Texy: >>text<<, Markdown: > text */
+  quotedInline(text: string): { prefix: string; suffix: string };
+  /** HTML block wrapper */
+  htmlBlockWrapper(): { prefix: string; suffix: string };
+  /** Comment block wrapper */
+  commentBlockWrapper(): { prefix: string; suffix: string };
 }

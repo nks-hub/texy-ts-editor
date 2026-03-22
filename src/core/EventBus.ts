@@ -16,7 +16,11 @@ export class EventBus {
     this.listeners.get(event as string)?.delete(handler as TexyEventHandler<unknown>);
   }
 
-  emit<K extends keyof EventMap>(event: K, data: EventMap[K]): void {
+  emit<K extends keyof EventMap>(
+    event: K,
+    ...args: EventMap[K] extends void ? [] : [data: EventMap[K]]
+  ): void {
+    const data = args[0] as EventMap[K];
     this.listeners.get(event as string)?.forEach((handler) => {
       try {
         handler(data);

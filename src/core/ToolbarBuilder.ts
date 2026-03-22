@@ -174,7 +174,9 @@ export class ToolbarBuilder {
     btn.className = `te-btn te-btn-${name}`;
     btn.setAttribute('data-action', name);
 
-    const label = (this.strings as unknown as Record<string, string>)[name] ?? name;
+    const label = (name in this.strings)
+      ? this.strings[name as keyof TexyEditorStrings]
+      : name;
     btn.setAttribute('aria-label', label);
     btn.setAttribute('title', label);
 

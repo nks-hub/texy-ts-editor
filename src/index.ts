@@ -7,6 +7,7 @@ export { UndoManager } from './core/UndoManager';
 export { KeyboardManager } from './core/KeyboardManager';
 export { ToolbarBuilder } from './core/ToolbarBuilder';
 export { DialogManager } from './core/DialogManager';
+export type { DialogConfig } from './core/DialogManager';
 
 // Parser
 export { TexyParser } from './parser';
@@ -17,6 +18,10 @@ export {
   bbcodePlugin,
   imageEmbedPlugin,
 } from './parser';
+export type { YouTubePluginOptions } from './parser/plugins/youtube';
+export type { SmileyPluginOptions } from './parser/plugins/smiley';
+export type { LinkRedirectPluginOptions } from './parser/plugins/link-redirect';
+export type { ImageEmbedPluginOptions } from './parser/plugins/image-embed';
 
 // Modes
 export { TexyMode } from './modes/TexyMode';

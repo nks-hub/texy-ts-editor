@@ -195,4 +195,20 @@ export class MarkdownMode implements SyntaxMode {
   supportsModifiers(): boolean {
     return false;
   }
+
+  noProcess(): { prefix: string; suffix: string } {
+    return { prefix: '`', suffix: '`' };
+  }
+
+  quotedInline(): { prefix: string; suffix: string } {
+    return { prefix: '> ', suffix: '' };
+  }
+
+  htmlBlockWrapper(): { prefix: string; suffix: string } {
+    return { prefix: '```html\n', suffix: '\n```' };
+  }
+
+  commentBlockWrapper(): { prefix: string; suffix: string } {
+    return { prefix: '<!-- ', suffix: ' -->' };
+  }
 }

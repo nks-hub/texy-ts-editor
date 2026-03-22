@@ -221,9 +221,13 @@ describe('TexyMode', () => {
     });
   });
 
-  describe('highlight (fallback)', () => {
-    it('uses bold as fallback', () => {
-      expect(mode.highlight('text')).toBe('**text**');
+  describe('highlight (no-op in Texy)', () => {
+    it('returns text unchanged (Texy has no native highlight)', () => {
+      expect(mode.highlight('text')).toBe('text');
+    });
+
+    it('has empty marker to prevent toggle', () => {
+      expect(mode.markers.highlight).toBe('');
     });
   });
 
