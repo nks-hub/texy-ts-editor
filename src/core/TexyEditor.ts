@@ -242,15 +242,13 @@ export class TexyEditor implements TexyEditorAPI {
   execAction(name: string): void {
     const action = this.actions[name];
     if (action) {
-      // In preview mode, just switch to edit — user can't select source text in preview
-      if (this.currentView === 'preview') {
-        this.setView('edit');
-        this.textarea.focus();
-        return;
-      }
       this.textarea.focus();
       action();
       this.events.emit('toolbar:action', { button: name });
+      // Re-render preview if visible
+      if (this.currentView !== 'edit') {
+        this.renderPreview();
+      }
     }
   }
 
