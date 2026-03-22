@@ -1,4 +1,5 @@
 import type { TexyParserOptions, TexyParserPlugin } from '../types';
+import { escapeHtml } from '../utils/escapeHtml';
 
 /**
  * Client-side Texy markup parser.
@@ -718,10 +719,6 @@ export class TexyParser {
   // ── Utilities ─────────────────────────────────────────────
 
   private escapeHtml(text: string): string {
-    return text
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
+    return escapeHtml(text);
   }
 }

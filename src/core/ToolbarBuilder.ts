@@ -4,6 +4,7 @@ import type {
   ToolbarGroup,
   ToolbarCustomButton,
   TexyEditorStrings,
+  TexyEditorAPI,
 } from '../types';
 
 /** SVG icon paths for built-in toolbar buttons (Lucide-inspired, 24×24 viewBox) */
@@ -78,11 +79,21 @@ function createSvgIcon(name: string): string {
 export class ToolbarBuilder {
   private toolbar!: HTMLElement;
   private bottomBar!: HTMLElement;
+  private abortController = new AbortController();
+  private editorApi: TexyEditorAPI | null = null;
 
   constructor(
     private strings: TexyEditorStrings,
     private actionHandler: (name: string) => void,
   ) {}
+
+  setEditorApi(api: TexyEditorAPI): void {
+    this.editorApi = api;
+  }
+
+  destroy(): void {
+    this.abortController.abort();
+  }
 
   build(config: ToolbarConfig): HTMLElement {
     this.toolbar = document.createElement('div');
@@ -197,7 +208,11 @@ export class ToolbarBuilder {
 
     btn.addEventListener('click', (e) => {
       e.preventDefault();
-      this.actionHandler(config.name);
+      if (config.action) {
+        config.action(this.editorApi!);
+      } else {
+        this.actionHandler(config.name);
+      }
     });
 
     return btn;
@@ -239,11 +254,11 @@ export class ToolbarBuilder {
       trigger.setAttribute('aria-expanded', String(isOpen));
     });
 
-    // Close on outside click
+    // Close on outside click (cleaned up via AbortController in destroy())
     document.addEventListener('click', () => {
       wrapper.classList.remove('te-dropdown-open');
       trigger.setAttribute('aria-expanded', 'false');
-    });
+    }, { signal: this.abortController.signal });
 
     wrapper.appendChild(trigger);
     wrapper.appendChild(menu);

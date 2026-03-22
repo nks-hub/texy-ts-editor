@@ -53,5 +53,8 @@ export type {
   TexyParserPlugin,
 } from './types';
 
+// Utilities
+export { escapeHtml, isSafeUrl, sanitizeUrl } from './utils/escapeHtml';
+
 // CSS (side-effect import for bundlers)
 import './themes/base.css';

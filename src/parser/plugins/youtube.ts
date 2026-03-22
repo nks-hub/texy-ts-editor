@@ -1,4 +1,5 @@
 import type { TexyParserPlugin } from '../../types';
+import { escapeHtml } from '../../utils/escapeHtml';
 
 export interface YouTubePluginOptions {
   /** Iframe width (default: 560) */
@@ -62,7 +63,7 @@ export function youtubePlugin(options: YouTubePluginOptions = {}): TexyParserPlu
     processInline(text: string, placeholder: (html: string) => string): string {
       return text.replace(/\{\{youtube:([a-zA-Z0-9_-]+)\}\}/g, (_m, id) => {
         const fsAttr = allowFs ? ' allowfullscreen' : '';
-        const iframe = `<div class="${wrapperClass}"><iframe width="${width}" height="${height}" src="https://www.youtube.com/embed/${id}" frameborder="0"${fsAttr}></iframe></div>`;
+        const iframe = `<div class="${escapeHtml(wrapperClass)}"><iframe width="${width}" height="${height}" src="https://www.youtube.com/embed/${id}" frameborder="0"${fsAttr}></iframe></div>`;
         return placeholder(iframe);
       });
     },

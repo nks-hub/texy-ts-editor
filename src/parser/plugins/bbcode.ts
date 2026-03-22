@@ -1,4 +1,5 @@
 import type { TexyParserPlugin } from '../../types';
+import { escapeHtml, sanitizeUrl } from '../../utils/escapeHtml';
 
 /**
  * BBCode plugin for TexyParser.
@@ -41,13 +42,19 @@ export function bbcodePlugin(): TexyParserPlugin {
       // [url=URL]text[/url]
       text = text.replace(
         /\[url=([^\]]+)\]([\s\S]*?)\[\/url\]/gi,
-        (_m, url, content) => placeholder(`<a href="${url}">${content}</a>`),
+        (_m, url, content) => {
+          const safeUrl = sanitizeUrl(url);
+          return placeholder(`<a href="${safeUrl}">${escapeHtml(content)}</a>`);
+        },
       );
 
       // [color=COLOR]text[/color]
       text = text.replace(
         /\[color=([^\]]+)\]([\s\S]*?)\[\/color\]/gi,
-        (_m, color, content) => placeholder(`<span style="color:${color}">${content}</span>`),
+        (_m, color, content) => {
+          const safeColor = escapeHtml(color.replace(/[;"'{}()]/g, ''));
+          return placeholder(`<span style="color:${safeColor}">${escapeHtml(content)}</span>`);
+        },
       );
 
       return text;

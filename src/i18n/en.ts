@@ -58,6 +58,7 @@ export const en: TexyEditorStrings = {
   uploadDragDrop: 'Drag & drop a file here or click',
   previewEmpty: 'Enter some text to see preview.',
   previewLoading: 'Loading preview…',
+  previewError: 'Preview loading failed.',
   headingPrompt: 'Heading text',
   ok: 'OK',
   cancel: 'Cancel',

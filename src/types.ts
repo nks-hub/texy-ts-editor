@@ -207,6 +207,7 @@ export interface TexyEditorStrings {
   uploadDragDrop: string;
   previewEmpty: string;
   previewLoading: string;
+  previewError: string;
   headingPrompt: string;
   ok: string;
   cancel: string;

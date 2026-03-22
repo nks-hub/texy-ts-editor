@@ -1,4 +1,5 @@
 import type { TexyParserPlugin } from '../../types';
+import { escapeHtml, sanitizeUrl } from '../../utils/escapeHtml';
 
 export interface ImageEmbedPluginOptions {
   /** Max width for embedded images (default: '300px') */
@@ -47,8 +48,12 @@ export function imageEmbedPlugin(options: ImageEmbedPluginOptions = {}): TexyPar
       text = text.replace(
         /\{\{imglink:(\S+?)(?:\|alt:([^|]*))?\|(\S+)\}\}/g,
         (_m, imgUrl, alt, linkUrl) => {
-          const altAttr = alt ? ` alt="${alt}"` : ' alt=""';
-          const img = `<a href="${linkUrl}"><img src="${imgUrl}"${altAttr} class="${className}" style="max-width:${maxWidth}"></a>`;
+          const altAttr = alt ? ` alt="${escapeHtml(alt)}"` : ' alt=""';
+          const safeLinkUrl = sanitizeUrl(linkUrl);
+          const safeImgUrl = sanitizeUrl(imgUrl);
+          const safeClass = escapeHtml(className);
+          const safeWidth = escapeHtml(maxWidth);
+          const img = `<a href="${safeLinkUrl}"><img src="${safeImgUrl}"${altAttr} class="${safeClass}" style="max-width:${safeWidth}"></a>`;
           return placeholder(img);
         },
       );

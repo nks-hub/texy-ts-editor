@@ -12,11 +12,7 @@
       "import": "./dist/texy-editor.js",
       "require": "./dist/texy-editor.cjs"
     },
-    "./css": "./dist/texy-editor.css",
-    "./themes/light": "./dist/themes/light.css",
-    "./themes/dark": "./dist/themes/dark.css",
-    "./themes/bootstrap": "./dist/themes/bootstrap-adapter.css",
-    "./themes/tailwind": "./dist/themes/tailwind-adapter.css"
+    "./css": "./dist/texy-editor.css"
   },
   "files": [
     "dist",
@@ -69,5 +65,19 @@
     "markdown-it-footnote": "^4.0.0",
     "markdown-it-mark": "^4.0.0",
     "markdown-it-task-lists": "^2.1.1"
+  },
+  "peerDependencies": {
+    "highlight.js": "^11.0.0",
+    "markdown-it": "^14.0.0",
+    "markdown-it-footnote": "^4.0.0",
+    "markdown-it-mark": "^4.0.0",
+    "markdown-it-task-lists": "^2.0.0"
+  },
+  "peerDependenciesMeta": {
+    "highlight.js": { "optional": true },
+    "markdown-it": { "optional": true },
+    "markdown-it-footnote": { "optional": true },
+    "markdown-it-mark": { "optional": true },
+    "markdown-it-task-lists": { "optional": true }
   }
 }

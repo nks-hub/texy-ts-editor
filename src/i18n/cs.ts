@@ -58,6 +58,7 @@ export const cs: TexyEditorStrings = {
   uploadDragDrop: 'Přetáhněte soubor sem nebo klikněte',
   previewEmpty: 'Zadejte text pro zobrazení náhledu.',
   previewLoading: 'Načítání náhledu…',
+  previewError: 'Načítání náhledu selhalo.',
   headingPrompt: 'Text nadpisu',
   ok: 'OK',
   cancel: 'Zrušit',

@@ -1,4 +1,5 @@
 import type { TexyParserPlugin } from '../../types';
+import { escapeHtml } from '../../utils/escapeHtml';
 
 export interface SmileyPluginOptions {
   /** Base URL for smiley images (required) */
@@ -32,7 +33,7 @@ export function smileyPlugin(options: SmileyPluginOptions): TexyParserPlugin {
         /(?<!\*)\*(\d{1,6})\*(?!\*)/g,
         (_m, id) => {
           const label = ariaLabels[id] ?? 'smiley';
-          const img = `<img src="${baseUrl}/${id}.${format}" alt="${label}" class="${className}">`;
+          const img = `<img src="${escapeHtml(baseUrl)}/${id}.${escapeHtml(format)}" alt="${escapeHtml(label)}" class="${escapeHtml(className)}">`;
           return placeholder(img);
         },
       );

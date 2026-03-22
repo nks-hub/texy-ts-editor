@@ -76,6 +76,8 @@ export class TexyEditor implements TexyEditorAPI {
   private previewDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   private lastPreviewedValue = '';
   private destroyed = false;
+  private boundInputHandler: (() => void) | null = null;
+  private boundResizeHandler: (() => void) | null = null;
 
   // Built-in button actions
   private actions: Record<string, () => void> = {};
@@ -94,7 +96,9 @@ export class TexyEditor implements TexyEditorAPI {
     }
 
     // Guard against double-init
-    if (this.textarea.dataset.texyEditor) return;
+    if (this.textarea.dataset.texyEditor) {
+      throw new Error('TexyEditor: this textarea is already initialized. Call destroy() first.');
+    }
     this.textarea.dataset.texyEditor = 'true';
 
     this.options = { ...DEFAULT_OPTIONS, ...options };
@@ -118,6 +122,7 @@ export class TexyEditor implements TexyEditorAPI {
       this.strings,
       (name) => this.execAction(name),
     );
+    this.toolbarBuilder.setEditorApi(this);
 
     // Build DOM
     this.buildDOM();
@@ -283,6 +288,22 @@ export class TexyEditor implements TexyEditorAPI {
     if (this.destroyed) return;
     this.destroyed = true;
 
+    // Clear pending timers
+    if (this.previewDebounceTimer) {
+      clearTimeout(this.previewDebounceTimer);
+      this.previewDebounceTimer = null;
+    }
+
+    // Remove textarea event listeners
+    if (this.boundInputHandler) {
+      this.textarea.removeEventListener('input', this.boundInputHandler);
+      this.boundInputHandler = null;
+    }
+    if (this.boundResizeHandler) {
+      this.textarea.removeEventListener('input', this.boundResizeHandler);
+      this.boundResizeHandler = null;
+    }
+
     // Destroy plugins
     for (const plugin of this.plugins) {
       plugin.destroy?.();
@@ -293,6 +314,9 @@ export class TexyEditor implements TexyEditorAPI {
 
     // Close dialogs
     this.dialogManager.closeAll();
+
+    // Cleanup toolbar (removes document listeners)
+    this.toolbarBuilder.destroy();
 
     // Remove container, restore textarea
     const parent = this.container.parentNode;
@@ -420,15 +444,35 @@ export class TexyEditor implements TexyEditorAPI {
     try {
       const response = await fetch(this.options.previewPath!, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-Requested-With': 'TexyEditor',
+        },
         body: `texy=${encodeURIComponent(value)}&cfg=${encodeURIComponent(this.options.texyCfg ?? '')}`,
       });
+      if (!response.ok) {
+        this.previewContent.innerHTML = `<p class="te-preview-error">${this.strings.previewError}</p>`;
+        return;
+      }
       const html = await response.text();
-      this.previewContent.innerHTML = html;
+      this.previewContent.innerHTML = this.sanitizePreviewHtml(html);
       this.events.emit('preview:render', { html });
     } catch {
-      this.previewContent.innerHTML = '<p class="te-preview-error">Preview loading failed.</p>';
+      this.previewContent.innerHTML = `<p class="te-preview-error">${this.strings.previewError}</p>`;
     }
+  }
+
+  private sanitizePreviewHtml(html: string): string {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    doc.querySelectorAll('script,style,link[rel="import"],object,embed,iframe:not([src*="youtube.com/embed"]):not([src*="youtu.be"])').forEach((el) => el.remove());
+    doc.querySelectorAll('*').forEach((el) => {
+      for (const attr of Array.from(el.attributes)) {
+        if (attr.name.startsWith('on') || (attr.name === 'href' && attr.value.trim().toLowerCase().startsWith('javascript:'))) {
+          el.removeAttribute(attr.name);
+        }
+      }
+    });
+    return doc.body.innerHTML;
   }
 
   // ── Private: Actions ──────────────────────────────────────
@@ -649,34 +693,6 @@ export class TexyEditor implements TexyEditorAPI {
   }
 
   private handleTable(): void {
-    if (this.mode.name === 'texy') {
-      this.handleTableTexy();
-      return;
-    }
-    this.handleTableMarkdown();
-  }
-
-  private handleTableTexy(): void {
-    const content = document.createElement('div');
-    content.className = 'te-dialog-form';
-
-    const colsInput = this.createFormField(content, this.strings.tableCols, 'number', '3');
-    const rowsInput = this.createFormField(content, this.strings.tableRows, 'number', '3');
-
-    this.dialogManager.open('table', {
-      title: this.strings.table,
-      width: 320,
-      content,
-      onSubmit: () => {
-        const cols = parseInt(colsInput.value) || 3;
-        const rows = parseInt(rowsInput.value) || 3;
-        this.formatter.table(cols, rows, 'top');
-        this.focus();
-      },
-    });
-  }
-
-  private handleTableMarkdown(): void {
     const content = document.createElement('div');
     content.className = 'te-dialog-form';
 
@@ -808,7 +824,7 @@ export class TexyEditor implements TexyEditorAPI {
   private setupUndoTracking(): void {
     let debounce: ReturnType<typeof setTimeout> | null = null;
 
-    this.textarea.addEventListener('input', () => {
+    this.boundInputHandler = () => {
       if (debounce) clearTimeout(debounce);
       debounce = setTimeout(() => {
         this.undoManager.push({
@@ -828,20 +844,21 @@ export class TexyEditor implements TexyEditorAPI {
           this.options.livePreviewDelay ?? 400,
         );
       }
-    });
+    };
+    this.textarea.addEventListener('input', this.boundInputHandler);
   }
 
   // ── Private: Auto Resize ──────────────────────────────────
 
   private setupAutoResize(): void {
-    const resize = () => {
+    this.boundResizeHandler = () => {
       this.textarea.style.height = 'auto';
       this.textarea.style.height = this.textarea.scrollHeight + 'px';
     };
 
-    this.textarea.addEventListener('input', resize);
+    this.textarea.addEventListener('input', this.boundResizeHandler);
     // Initial resize
-    requestAnimationFrame(resize);
+    requestAnimationFrame(this.boundResizeHandler);
   }
 
   // ── Private: Plugins ──────────────────────────────────────

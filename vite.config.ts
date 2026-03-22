@@ -49,10 +49,22 @@ export default defineConfig(({ mode }) => {
         fileName: (format) => `texy-editor.${format === 'es' ? 'js' : 'cjs'}`,
       },
       rollupOptions: {
+        external: [
+          'highlight.js',
+          'highlight.js/lib/core',
+          'markdown-it',
+          'markdown-it-footnote',
+          'markdown-it-mark',
+          'markdown-it-task-lists',
+        ],
         output: {
           assetFileNames: (assetInfo) => {
             if (assetInfo.name === 'style.css') return 'texy-editor.css';
             return assetInfo.name ?? 'asset';
+          },
+          globals: {
+            'highlight.js': 'hljs',
+            'markdown-it': 'markdownit',
           },
         },
       },
