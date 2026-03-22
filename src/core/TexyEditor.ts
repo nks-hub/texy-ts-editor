@@ -260,27 +260,52 @@ export class TexyEditor implements TexyEditorAPI {
     const sel = window.getSelection();
     if (!sel || sel.isCollapsed || !sel.rangeCount) return;
 
-    // Check if selection is inside our preview area
     const range = sel.getRangeAt(0);
     if (!this.previewContent.contains(range.commonAncestorContainer)) return;
 
     const selectedText = sel.toString().trim();
     if (!selectedText) return;
 
-    // Find the selected text in textarea value
+    // Count which occurrence of selectedText this is in preview's text content
+    const previewFullText = this.previewContent.textContent ?? '';
+    const previewOffset = this.getSelectionOffsetInContainer(range, this.previewContent);
+    let occurrence = 0;
+    let searchFrom = 0;
+    while (searchFrom <= previewOffset) {
+      const idx = previewFullText.indexOf(selectedText, searchFrom);
+      if (idx === -1 || idx > previewOffset) break;
+      occurrence++;
+      searchFrom = idx + 1;
+    }
+    if (occurrence === 0) occurrence = 1;
+
+    // Find the same Nth occurrence in textarea source
     const source = this.textarea.value;
-    const idx = source.indexOf(selectedText);
-    if (idx !== -1) {
-      this.textarea.setSelectionRange(idx, idx + selectedText.length);
-      return;
+    let found = 0;
+    let sourceFrom = 0;
+    while (found < occurrence) {
+      const idx = source.indexOf(selectedText, sourceFrom);
+      if (idx === -1) break;
+      found++;
+      if (found === occurrence) {
+        this.textarea.setSelectionRange(idx, idx + selectedText.length);
+        return;
+      }
+      sourceFrom = idx + 1;
     }
 
-    // If exact match not found, try normalized (without extra whitespace)
-    const normalized = selectedText.replace(/\s+/g, ' ');
-    const normIdx = source.indexOf(normalized);
-    if (normIdx !== -1) {
-      this.textarea.setSelectionRange(normIdx, normIdx + normalized.length);
+    // Fallback: first occurrence
+    const fallback = source.indexOf(selectedText);
+    if (fallback !== -1) {
+      this.textarea.setSelectionRange(fallback, fallback + selectedText.length);
     }
+  }
+
+  private getSelectionOffsetInContainer(range: Range, container: Node): number {
+    const preRange = document.createRange();
+    preRange.selectNodeContents(container);
+    preRange.setEnd(range.startContainer, range.startOffset);
+    return preRange.toString().length;
   }
 
   on<K extends keyof TexyEditorEvents>(event: K, handler: TexyEventHandler<TexyEditorEvents[K]>): void {
