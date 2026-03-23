@@ -1,6 +1,6 @@
 {
   "name": "@nks-hub/texy-editor",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Modern TypeScript Texy markup editor with configurable toolbar, live preview, theming, and plugin system",
   "type": "module",
   "main": "./dist/texy-editor.cjs",
