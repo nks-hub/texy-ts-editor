@@ -51,13 +51,13 @@ export default defineConfig(({ mode }) => {
         fileName: (format, entryName) => `${entryName}.${format === 'es' ? 'js' : 'cjs'}`,
       },
       rollupOptions: {
+        // markdown-it (+ its plugins) is bundled INTO the markdown entry so the
+        // '/markdown' chunk is self-contained — consumers' own chunk splitting
+        // can't sever the markdown-it reference. highlight.js stays external:
+        // it's large, shared, and consumers dedupe it in their own vendor chunk.
         external: [
           'highlight.js',
           'highlight.js/lib/core',
-          'markdown-it',
-          'markdown-it-footnote',
-          'markdown-it-mark',
-          'markdown-it-task-lists',
         ],
         output: {
           assetFileNames: (assetInfo) => {
@@ -66,7 +66,6 @@ export default defineConfig(({ mode }) => {
           },
           globals: {
             'highlight.js': 'hljs',
-            'markdown-it': 'markdownit',
           },
         },
       },
