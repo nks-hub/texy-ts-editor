@@ -207,11 +207,27 @@ export class TexyMode implements SyntaxMode {
   }
 
   colorModifier(text: string, color: string): string {
-    return `"${text}" .{color: ${color}}`;
+    return this.wrapPhraseWithModifier(text, `.{color: ${color}}`);
   }
 
   classModifier(text: string, className: string): string {
-    return `"${text}" .[${className}]`;
+    return this.wrapPhraseWithModifier(text, `.[${className}]`);
+  }
+
+  /**
+   * Texy phrase modifiers must sit inside the span quotes ("text .{...}"),
+   * a modifier after the closing quote is not parsed (or colors the whole
+   * paragraph at end of line). A phrase also cannot span lines, so each
+   * selected line is wrapped separately.
+   */
+  private wrapPhraseWithModifier(text: string, modifier: string): string {
+    if (!text.includes('\n')) {
+      return `"${text} ${modifier}"`;
+    }
+    return text
+      .split('\n')
+      .map((line) => (line.trim() === '' ? line : `"${line} ${modifier}"`))
+      .join('\n');
   }
 
   alignmentPrefix(type: string): string {

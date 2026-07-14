@@ -248,14 +248,17 @@ describe('TexyMode', () => {
         .toBe('"some phrase"((title))');
     });
 
-    it('colorModifier()', () => {
-      const result = mode.colorModifier('text', 'red');
-      expect(result).toContain('color: red');
+    it('colorModifier() puts the modifier inside the phrase quotes', () => {
+      expect(mode.colorModifier('text', 'red')).toBe('"text .{color: red}"');
     });
 
-    it('classModifier()', () => {
-      const result = mode.classModifier('text', 'highlight');
-      expect(result).toContain('highlight');
+    it('colorModifier() wraps each line separately, skipping blank lines', () => {
+      expect(mode.colorModifier('a\n\nb', 'red'))
+        .toBe('"a .{color: red}"\n\n"b .{color: red}"');
+    });
+
+    it('classModifier() puts the modifier inside the phrase quotes', () => {
+      expect(mode.classModifier('text', 'highlight')).toBe('"text .[highlight]"');
     });
 
     it('alignmentPrefix()', () => {

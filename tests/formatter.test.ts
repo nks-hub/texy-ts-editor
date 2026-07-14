@@ -318,20 +318,27 @@ describe('TexyFormatter', () => {
   // ── Modifiers ─────────────────────────────────────────
 
   describe('colorModifier()', () => {
-    it('wraps with color style', () => {
+    it('wraps with color style inside the phrase quotes', () => {
       textarea.value = 'red text';
       textarea.setSelectionRange(0, 8);
       fmt.colorModifier('red');
-      expect(textarea.value).toContain('.{color: red}');
+      expect(textarea.value).toBe('"red text .{color: red}"');
+    });
+
+    it('wraps each line of a multiline selection separately', () => {
+      textarea.value = 'first\nsecond';
+      textarea.setSelectionRange(0, 12);
+      fmt.colorModifier('red');
+      expect(textarea.value).toBe('"first .{color: red}"\n"second .{color: red}"');
     });
   });
 
   describe('classModifier()', () => {
-    it('wraps with class', () => {
+    it('wraps with class inside the phrase quotes', () => {
       textarea.value = 'styled text';
       textarea.setSelectionRange(0, 11);
       fmt.classModifier('highlight');
-      expect(textarea.value).toContain('.[highlight]');
+      expect(textarea.value).toBe('"styled text .[highlight]"');
     });
   });
 
