@@ -9,3 +9,6 @@ demo-dist/
 !.github/
 /[A-Z]*.md
 !/README.md
+
+coverage/
+test-results/

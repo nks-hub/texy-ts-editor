@@ -300,12 +300,14 @@ export class TexyFormatter {
 
   // ── Modifiers ─────────────────────────────────────────────────
 
+  // Texy phrase modifiers must sit inside the span quotes ("text .{...}") —
+  // a modifier after the closing quote is not parsed by real Texy
   colorModifier(color: string): void {
-    this.selection.phrase(`"`, `" .{color: ${color}}`);
+    this.selection.phrase(`"`, ` .{color: ${color}}"`);
   }
 
   classModifier(className: string): void {
-    this.selection.phrase(`"`, `" .[${className}]`);
+    this.selection.phrase(`"`, ` .[${className}]"`);
   }
 
   // ── Symbols ───────────────────────────────────────────────────

@@ -154,13 +154,25 @@ describe('TexyParser: acronyms', () => {
 // ── Modifiers ─────────────────────────────────────────────
 
 describe('TexyParser: inline modifiers', () => {
-  it('parses "text" .{color: red}', () => {
+  it('parses "text .{color: red}" (modifier inside quotes, real Texy)', () => {
+    const result = parseInline('"červený .{color: red}"');
+    expect(result).toContain('style="color: red"');
+    expect(result).toContain('červený');
+    expect(result).not.toContain('.{color');
+  });
+
+  it('parses "text .[class]" (modifier inside quotes, real Texy)', () => {
+    const result = parseInline('"test .[highlight]"');
+    expect(result).toContain('class="highlight"');
+  });
+
+  it('parses legacy "text" .{color: red} (modifier outside quotes)', () => {
     const result = parseInline('"červený" .{color: red}');
     expect(result).toContain('style="color: red"');
     expect(result).toContain('červený');
   });
 
-  it('parses "text" .[class]', () => {
+  it('parses legacy "text" .[class] (modifier outside quotes)', () => {
     const result = parseInline('"test" .[highlight]');
     expect(result).toContain('class="highlight"');
   });

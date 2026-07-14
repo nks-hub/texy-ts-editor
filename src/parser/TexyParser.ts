@@ -497,12 +497,21 @@ export class TexyParser {
       (_m, word, title) => ph(`<abbr title="${this.escapeHtml(title)}">${this.escapeHtml(word)}</abbr>`),
     );
 
-    // 7. Phrase with modifier: "text" .{style}
+    // 7. Phrase with modifier inside the quotes: "text .{style}" (real Texy syntax)
+    src = src.replace(
+      /"(.+?)\s+\.\{([^}]+)\}"/g,
+      (_m, content, style) => ph(`<span style="${this.escapeHtml(style)}">${this.escapeHtml(content)}</span>`),
+    );
+    src = src.replace(
+      /"(.+?)\s+\.\[([^\]]+)\]"/g,
+      (_m, content, cls) => ph(`<span class="${this.escapeHtml(cls)}">${this.escapeHtml(content)}</span>`),
+    );
+    // Legacy form emitted by editor <= 0.2.1 with the modifier after the closing
+    // quote: "text" .{style} — kept so old saved posts still preview colored
     src = src.replace(
       /"(.+?)"\s*\.\{([^}]+)\}/g,
       (_m, content, style) => ph(`<span style="${this.escapeHtml(style)}">${this.escapeHtml(content)}</span>`),
     );
-    // Phrase with class modifier: "text" .[class]
     src = src.replace(
       /"(.+?)"\s*\.\[([^\]]+)\]/g,
       (_m, content, cls) => ph(`<span class="${this.escapeHtml(cls)}">${this.escapeHtml(content)}</span>`),
