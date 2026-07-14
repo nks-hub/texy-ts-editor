@@ -6,9 +6,25 @@ import type { SyntaxMode } from './modes/SyntaxMode';
 
 // ── Editor Options ──────────────────────────────────────────────
 
+/** Client-side live-preview renderer (source markup → HTML string) */
+export interface PreviewRenderer {
+  render(text: string): string;
+}
+
 export interface TexyEditorOptions {
-  /** Syntax dialect used by the editor toolbar and live preview */
-  syntaxMode?: 'texy' | 'markdown' | SyntaxMode;
+  /**
+   * Syntax dialect. Defaults to Texy. For Markdown (or any other dialect),
+   * pass a SyntaxMode instance — e.g. `new MarkdownMode()` imported from
+   * '@nks-hub/texy-editor/markdown' — so the core bundle stays free of the
+   * markdown-it dependency.
+   */
+  syntaxMode?: 'texy' | SyntaxMode;
+  /**
+   * Client-side live-preview renderer. When omitted the built-in Texy parser
+   * is used. Pass `new MarkdownPreview()` from '@nks-hub/texy-editor/markdown'
+   * to render Markdown previews.
+   */
+  preview?: PreviewRenderer;
   /** Language code for i18n strings */
   language?: string;
   /** Toolbar button configuration */

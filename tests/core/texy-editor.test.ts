@@ -15,6 +15,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { TexyEditor } from '../../src/core/TexyEditor';
 import { TexyMode } from '../../src/modes/TexyMode';
 import { MarkdownMode } from '../../src/modes/MarkdownMode';
+import { MarkdownPreview } from '../../src/preview/MarkdownPreview';
 import type { SyntaxMode } from '../../src/modes/SyntaxMode';
 import type { TexyEditorOptions, TexyPlugin } from '../../src/types';
 
@@ -456,16 +457,16 @@ describe('TexyEditor — options', () => {
     editor.destroy();
   });
 
-  it('syntaxMode: "markdown" creates a MarkdownMode instance', () => {
+  it('injected MarkdownMode instance is used as the syntax mode', () => {
     const ta = makeTextarea();
-    const editor = makeEditor(ta, { syntaxMode: 'markdown' });
+    const editor = makeEditor(ta, { syntaxMode: new MarkdownMode() });
     expect(editor.getMode()).toBeInstanceOf(MarkdownMode);
     editor.destroy();
   });
 
-  it('syntaxMode: "markdown" sets mode name to "markdown"', () => {
+  it('injected MarkdownMode sets mode name to "markdown"', () => {
     const ta = makeTextarea();
-    const editor = makeEditor(ta, { syntaxMode: 'markdown' });
+    const editor = makeEditor(ta, { syntaxMode: new MarkdownMode() });
     expect(editor.getMode().name).toBe('markdown');
     editor.destroy();
   });
@@ -737,9 +738,13 @@ describe('TexyEditor — preview rendering', () => {
     editor.destroy();
   });
 
-  it('MarkdownMode editor renders markdown preview client-side', () => {
+  it('injected MarkdownPreview renders markdown preview client-side', () => {
     const ta = makeTextarea('**bold text**');
-    const editor = makeEditor(ta, { syntaxMode: 'markdown', livePreview: true });
+    const editor = makeEditor(ta, {
+      syntaxMode: new MarkdownMode(),
+      preview: new MarkdownPreview(),
+      livePreview: true,
+    });
     editor.setView('preview');
 
     const previewContent = editor.getContainer().querySelector('.te-preview-content')!;

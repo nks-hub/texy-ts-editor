@@ -20,8 +20,7 @@ import { TexyParser } from '../parser';
 import { getStrings } from '../i18n';
 import type { SyntaxMode } from '../modes/SyntaxMode';
 import { TexyMode } from '../modes/TexyMode';
-import { MarkdownMode } from '../modes/MarkdownMode';
-import { MarkdownPreview } from '../preview/MarkdownPreview';
+import type { PreviewRenderer } from '../types';
 
 const DEFAULT_TOOLBAR: ToolbarConfig = [
   'bold', 'italic', null,
@@ -73,7 +72,7 @@ export class TexyEditor implements TexyEditorAPI {
   private isFullscreen = false;
   private parser!: TexyParser;
   private mode!: SyntaxMode;
-  private markdownPreview!: MarkdownPreview | null;
+  private markdownPreview!: PreviewRenderer | null;
   private plugins: TexyPlugin[] = [];
   private previewDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   private lastPreviewedValue = '';
@@ -106,11 +105,12 @@ export class TexyEditor implements TexyEditorAPI {
     this.options = { ...DEFAULT_OPTIONS, ...options };
     this.strings = getStrings(this.options.language ?? 'cs');
 
-    // Core modules
+    // Core modules. Non-Texy syntaxes (e.g. Markdown) are injected as a
+    // SyntaxMode instance — the core bundle carries no markdown-it dependency.
     if (typeof options.syntaxMode === 'object') {
       this.mode = options.syntaxMode;
     } else {
-      this.mode = options.syntaxMode === 'markdown' ? new MarkdownMode() : new TexyMode();
+      this.mode = new TexyMode();
     }
     this.selection = new Selection(this.textarea);
     this.formatter = new TexyFormatter(this.selection, this.mode);
@@ -118,7 +118,9 @@ export class TexyEditor implements TexyEditorAPI {
     this.undoManager = new UndoManager(this.options.maxUndoSteps);
     this.keyboard = new KeyboardManager(this.textarea, this.options.shortcuts);
     this.parser = new TexyParser();
-    this.markdownPreview = options.syntaxMode === 'markdown' ? new MarkdownPreview() : null;
+    // Optional client-side preview renderer (e.g. MarkdownPreview from the
+    // '@nks-hub/texy-editor/markdown' entry). Falls back to the Texy parser.
+    this.markdownPreview = options.preview ?? null;
 
     // Dialog handlers (requires formatter, selection, mode, strings — initialized above)
     // dialogManager is not yet available here; it is created in buildDOM().

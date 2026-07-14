@@ -23,13 +23,10 @@ export type { SmileyPluginOptions } from './parser/plugins/smiley';
 export type { LinkRedirectPluginOptions } from './parser/plugins/link-redirect';
 export type { ImageEmbedPluginOptions } from './parser/plugins/image-embed';
 
-// Modes
+// Modes — Texy is built in. MarkdownMode / MarkdownPreview live in the
+// '@nks-hub/texy-editor/markdown' entry to keep markdown-it out of the core.
 export { TexyMode } from './modes/TexyMode';
-export { MarkdownMode } from './modes/MarkdownMode';
 export type { SyntaxMode } from './modes/SyntaxMode';
-
-// Preview
-export { MarkdownPreview } from './preview/MarkdownPreview';
 
 // i18n
 export { getStrings, registerLanguage, cs, en } from './i18n';
@@ -56,6 +53,7 @@ export type {
   TexyParseRule,
   TexyParserOptions,
   TexyParserPlugin,
+  PreviewRenderer,
 } from './types';
 
 // Utilities

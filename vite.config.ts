@@ -43,10 +43,12 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       lib: {
-        entry: resolve(__dirname, 'src/index.ts'),
-        name: 'TexyEditor',
+        entry: {
+          'texy-editor': resolve(__dirname, 'src/index.ts'),
+          markdown: resolve(__dirname, 'src/markdown.ts'),
+        },
         formats: ['es', 'cjs'],
-        fileName: (format) => `texy-editor.${format === 'es' ? 'js' : 'cjs'}`,
+        fileName: (format, entryName) => `${entryName}.${format === 'es' ? 'js' : 'cjs'}`,
       },
       rollupOptions: {
         external: [
