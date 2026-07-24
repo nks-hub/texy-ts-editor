@@ -765,3 +765,114 @@ describe('TexyEditor — preview rendering', () => {
     editor.destroy();
   });
 });
+
+// ── Upload via paste & drag-and-drop ─────────────────────────────
+
+describe('TexyEditor — paste & drop upload', () => {
+  beforeEach(() => {
+    document.body.innerHTML = '';
+  });
+
+  function makeFileList(files: File[]): FileList {
+    const list: Record<string, unknown> = { length: files.length, item: (i: number) => files[i] ?? null };
+    files.forEach((f, i) => { list[i] = f; });
+    return list as unknown as FileList;
+  }
+
+  function pasteEvent(files: File[]): ClipboardEvent {
+    const e = new Event('paste', { bubbles: true, cancelable: true }) as ClipboardEvent;
+    Object.defineProperty(e, 'clipboardData', {
+      value: { files: makeFileList(files) },
+      configurable: true,
+    });
+    return e;
+  }
+
+  function dropEvent(files: File[]): DragEvent {
+    const e = new Event('drop', { bubbles: true, cancelable: true }) as DragEvent;
+    Object.defineProperty(e, 'dataTransfer', {
+      value: { files: makeFileList(files), types: ['Files'] },
+      configurable: true,
+    });
+    return e;
+  }
+
+  it('uploads an image pasted from the clipboard', async () => {
+    const uploadFn = vi.fn().mockResolvedValue({ url: 'https://cdn.example.com/pasted.png' });
+    const ta = makeTextarea('');
+    const editor = makeEditor(ta, { uploadHandler: { upload: uploadFn, accept: 'image/*' } });
+
+    const file = new File(['png'], 'pasted.png', { type: 'image/png' });
+    const e = pasteEvent([file]);
+    ta.dispatchEvent(e);
+
+    expect(e.defaultPrevented).toBe(true);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(uploadFn).toHaveBeenCalledWith(file);
+    expect(ta.value).toContain('https://cdn.example.com/pasted.png');
+    editor.destroy();
+  });
+
+  it('ignores paste without files (normal text paste)', () => {
+    const uploadFn = vi.fn();
+    const ta = makeTextarea('');
+    const editor = makeEditor(ta, { uploadHandler: { upload: uploadFn } });
+
+    const e = pasteEvent([]);
+    ta.dispatchEvent(e);
+
+    expect(e.defaultPrevented).toBe(false);
+    expect(uploadFn).not.toHaveBeenCalled();
+    editor.destroy();
+  });
+
+  it('ignores pasted files rejected by accept', () => {
+    const uploadFn = vi.fn();
+    const ta = makeTextarea('');
+    const editor = makeEditor(ta, { uploadHandler: { upload: uploadFn, accept: 'image/*' } });
+
+    const e = pasteEvent([new File(['pdf'], 'doc.pdf', { type: 'application/pdf' })]);
+    ta.dispatchEvent(e);
+
+    expect(e.defaultPrevented).toBe(false);
+    expect(uploadFn).not.toHaveBeenCalled();
+    editor.destroy();
+  });
+
+  it('uploads a dropped image file', async () => {
+    const uploadFn = vi.fn().mockResolvedValue({ url: 'https://cdn.example.com/dropped.jpg' });
+    const ta = makeTextarea('');
+    const editor = makeEditor(ta, { uploadHandler: { upload: uploadFn, accept: 'image/*' } });
+
+    const file = new File(['jpg'], 'dropped.jpg', { type: 'image/jpeg' });
+    const e = dropEvent([file]);
+    ta.dispatchEvent(e);
+
+    expect(e.defaultPrevented).toBe(true);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(uploadFn).toHaveBeenCalledWith(file);
+    expect(ta.value).toContain('https://cdn.example.com/dropped.jpg');
+    editor.destroy();
+  });
+
+  it('does not listen for paste when no uploadHandler is configured', () => {
+    const ta = makeTextarea('');
+    const editor = makeEditor(ta);
+
+    const e = pasteEvent([new File(['png'], 'p.png', { type: 'image/png' })]);
+    ta.dispatchEvent(e);
+
+    expect(e.defaultPrevented).toBe(false);
+    editor.destroy();
+  });
+
+  it('stops uploading after destroy()', () => {
+    const uploadFn = vi.fn();
+    const ta = makeTextarea('');
+    const editor = makeEditor(ta, { uploadHandler: { upload: uploadFn } });
+    editor.destroy();
+
+    ta.dispatchEvent(pasteEvent([new File(['png'], 'p.png', { type: 'image/png' })]));
+    expect(uploadFn).not.toHaveBeenCalled();
+  });
+});

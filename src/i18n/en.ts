@@ -56,6 +56,7 @@ export const en: TexyEditorStrings = {
   redo: 'Redo',
   upload: 'Upload file',
   uploadDragDrop: 'Drag & drop a file here or click',
+  uploading: 'Uploading',
   previewEmpty: 'Enter some text to see preview.',
   previewLoading: 'Loading preview…',
   previewError: 'Preview loading failed.',

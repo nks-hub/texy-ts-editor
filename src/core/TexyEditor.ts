@@ -79,6 +79,9 @@ export class TexyEditor implements TexyEditorAPI {
   private destroyed = false;
   private boundInputHandler: (() => void) | null = null;
   private boundResizeHandler: (() => void) | null = null;
+  private boundPasteHandler: ((e: ClipboardEvent) => void) | null = null;
+  private boundDragOverHandler: ((e: DragEvent) => void) | null = null;
+  private boundDropHandler: ((e: DragEvent) => void) | null = null;
 
   // Built-in button actions
   private actions: Record<string, () => void> = {};
@@ -177,6 +180,9 @@ export class TexyEditor implements TexyEditorAPI {
 
     // Setup undo tracking
     this.setupUndoTracking();
+
+    // Setup clipboard paste & drag-and-drop upload
+    this.setupUpload();
 
     // Set initial view
     this.currentView = this.options.defaultView ?? 'edit';
@@ -401,6 +407,18 @@ export class TexyEditor implements TexyEditorAPI {
     if (this.boundResizeHandler) {
       this.textarea.removeEventListener('input', this.boundResizeHandler);
       this.boundResizeHandler = null;
+    }
+    if (this.boundPasteHandler) {
+      this.textarea.removeEventListener('paste', this.boundPasteHandler);
+      this.boundPasteHandler = null;
+    }
+    if (this.boundDragOverHandler) {
+      this.textarea.removeEventListener('dragover', this.boundDragOverHandler);
+      this.boundDragOverHandler = null;
+    }
+    if (this.boundDropHandler) {
+      this.textarea.removeEventListener('drop', this.boundDropHandler);
+      this.boundDropHandler = null;
     }
 
     // Destroy plugins
@@ -684,6 +702,47 @@ export class TexyEditor implements TexyEditorAPI {
       }
     };
     this.textarea.addEventListener('input', this.boundInputHandler);
+  }
+
+  // ── Private: Upload (paste & drag-and-drop) ───────────────
+
+  private setupUpload(): void {
+    if (!this.options.uploadHandler) return;
+
+    this.boundPasteHandler = (e: ClipboardEvent) => {
+      const files = Array.from(e.clipboardData?.files ?? []).filter((f) => this.acceptsFile(f));
+      if (!files.length) return;
+      e.preventDefault();
+      for (const file of files) void this.dialogHandlers.uploadFile(file);
+    };
+
+    this.boundDragOverHandler = (e: DragEvent) => {
+      if (e.dataTransfer?.types.includes('Files')) e.preventDefault();
+    };
+
+    this.boundDropHandler = (e: DragEvent) => {
+      const files = Array.from(e.dataTransfer?.files ?? []).filter((f) => this.acceptsFile(f));
+      if (!files.length) return;
+      e.preventDefault();
+      for (const file of files) void this.dialogHandlers.uploadFile(file);
+    };
+
+    this.textarea.addEventListener('paste', this.boundPasteHandler);
+    this.textarea.addEventListener('dragover', this.boundDragOverHandler);
+    this.textarea.addEventListener('drop', this.boundDropHandler);
+  }
+
+  /** Match a file against the uploadHandler.accept pattern (input[accept] semantics) */
+  private acceptsFile(file: File): boolean {
+    const accept = this.options.uploadHandler?.accept;
+    if (!accept) return true;
+    return accept.split(',').some((pattern) => {
+      const p = pattern.trim().toLowerCase();
+      if (!p) return false;
+      if (p.endsWith('/*')) return file.type.toLowerCase().startsWith(p.slice(0, -1));
+      if (p.startsWith('.')) return file.name.toLowerCase().endsWith(p);
+      return file.type.toLowerCase() === p;
+    });
   }
 
   // ── Private: Auto Resize ──────────────────────────────────

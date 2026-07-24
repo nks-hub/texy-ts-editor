@@ -36,6 +36,8 @@ export interface DialogHandlersDeps {
 }
 
 export class DialogHandlers {
+  private uploadSeq = 0;
+
   constructor(private deps: DialogHandlersDeps) {}
 
   handleLink(): void {
@@ -265,45 +267,58 @@ export class DialogHandlers {
     if (handler.accept) input.accept = handler.accept;
     input.style.display = 'none';
 
-    input.addEventListener('change', async () => {
+    input.addEventListener('change', () => {
       const file = input.files?.[0];
-      if (!file) return;
-
-      if (handler.maxSize && file.size > handler.maxSize) {
-        this.deps.events.emit('upload:error', {
-          message: this.deps.strings.upload + ': ' + file.name + ' is too large',
-          error: new Error(this.deps.strings.upload + ': ' + file.name + ' is too large'),
-          file,
-        });
-        return;
-      }
-
-      this.deps.events.emit('upload:start', { file });
-
-      try {
-        const result = await handler.upload(file);
-        this.deps.events.emit('upload:complete', { url: result.url, file });
-
-        if (file.type.startsWith('image/')) {
-          const alt = result.alt || file.name;
-          if (this.deps.mode.name === 'markdown') {
-            this.deps.formatter.image(result.url, alt);
-          } else {
-            const dims = result.width && result.height ? ` ${result.width}x${result.height}` : '';
-            this.deps.selection.replace(`[* ${result.url}${dims} .>] *** ${alt}`);
-          }
-        } else {
-          this.deps.formatter.link(result.url, file.name);
-        }
-      } catch (err) {
-        const error = err instanceof Error ? err : new Error(String(err));
-        this.deps.events.emit('upload:error', { error, file, message: error.message });
-      }
-
+      if (file) void this.uploadFile(file);
       input.remove();
     });
 
     document.body.appendChild(input);
     input.click();
+  }
+
+  /**
+   * Shared upload flow used by the toolbar button, clipboard paste, and
+   * drag & drop. Inserts a unique placeholder at the cursor so the async
+   * result lands in the right spot even if the user keeps typing.
+   */
+  async uploadFile(file: File): Promise<void> {
+    const handler = this.deps.options.uploadHandler;
+    if (!handler) return;
+
+    if (handler.maxSize && file.size > handler.maxSize) {
+      const message = this.deps.strings.upload + ': ' + file.name + ' is too large';
+      this.deps.events.emit('upload:error', { message, error: new Error(message), file });
+      return;
+    }
+
+    this.deps.events.emit('upload:start', { file });
+
+    const placeholder = `[${this.deps.strings.uploading} #${++this.uploadSeq}…]`;
+    this.deps.selection.replace(placeholder);
+
+    const replacePlaceholder = (markup: string) => {
+      const value = this.deps.selection.getValue();
+      this.deps.selection.setValue(value.replace(placeholder, markup));
+    };
+
+    try {
+      const result = await handler.upload(file);
+      this.deps.events.emit('upload:complete', { url: result.url, file });
+
+      if (file.type.startsWith('image/')) {
+        replacePlaceholder(this.deps.mode.imageWithOptions(result.url, result.alt, undefined, {
+          width: result.width,
+          height: result.height,
+          link: result.link,
+        }));
+      } else {
+        replacePlaceholder(this.deps.mode.link(file.name, result.url));
+      }
+    } catch (err) {
+      replacePlaceholder('');
+      const error = err instanceof Error ? err : new Error(String(err));
+      this.deps.events.emit('upload:error', { error, file, message: error.message });
+    }
   }
 }

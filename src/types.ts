@@ -149,6 +149,8 @@ export interface UploadResult {
   alt?: string;
   width?: number;
   height?: number;
+  /** Wrap the inserted image in a link to this URL (e.g. full-size version) */
+  link?: string;
 }
 
 // ── Mention ─────────────────────────────────────────────────────
@@ -223,6 +225,7 @@ export interface TexyEditorStrings {
   redo: string;
   upload: string;
   uploadDragDrop: string;
+  uploading: string;
   previewEmpty: string;
   previewLoading: string;
   previewError: string;

@@ -715,3 +715,104 @@ describe('DialogHandlers — handleUpload', () => {
     clickSpy.mockRestore();
   });
 });
+
+// ── uploadFile (shared flow: toolbar, paste, drag & drop) ────────
+
+describe('DialogHandlers — uploadFile', () => {
+  afterEach(() => {
+    document.body.innerHTML = '';
+    vi.restoreAllMocks();
+  });
+
+  it('inserts a placeholder at the cursor and replaces it with image markup', async () => {
+    let resolveUpload!: (v: { url: string }) => void;
+    const uploadFn = vi.fn().mockReturnValue(new Promise((r) => { resolveUpload = r; }));
+    const { handlers, ta } = makeDeps({
+      options: { uploadHandler: { upload: uploadFn } },
+    });
+    ta.value = 'before after';
+    ta.setSelectionRange(7, 7); // cursor between "before " and "after"
+
+    const file = new File(['img'], 'photo.jpg', { type: 'image/jpeg' });
+    const promise = handlers.uploadFile(file);
+
+    expect(ta.value).toContain('[Uploading #');
+    expect(ta.value.startsWith('before ')).toBe(true);
+
+    resolveUpload({ url: 'https://cdn.example.com/photo.jpg' });
+    await promise;
+
+    expect(ta.value).toBe('before [* https://cdn.example.com/photo.jpg *]after');
+  });
+
+  it('wraps the image in a link when UploadResult.link is set', async () => {
+    const uploadFn = vi.fn().mockResolvedValue({
+      url: 'https://cdn.example.com/thumb.jpg',
+      link: 'https://cdn.example.com/full.jpg',
+    });
+    const { handlers, ta } = makeDeps({
+      options: { uploadHandler: { upload: uploadFn } },
+    });
+    ta.value = '';
+    ta.setSelectionRange(0, 0);
+
+    await handlers.uploadFile(new File(['img'], 'p.jpg', { type: 'image/jpeg' }));
+
+    expect(ta.value).toBe('[* https://cdn.example.com/thumb.jpg *]:https://cdn.example.com/full.jpg');
+  });
+
+  it('removes the placeholder when upload fails', async () => {
+    const uploadFn = vi.fn().mockRejectedValue(new Error('boom'));
+    const { handlers, events, ta } = makeDeps({
+      options: { uploadHandler: { upload: uploadFn } },
+    });
+    const errorHandler = vi.fn();
+    events.on('upload:error', errorHandler);
+    ta.value = 'text ';
+    ta.setSelectionRange(5, 5);
+
+    await handlers.uploadFile(new File(['img'], 'p.jpg', { type: 'image/jpeg' }));
+
+    expect(ta.value).toBe('text ');
+    expect(errorHandler).toHaveBeenCalledOnce();
+  });
+
+  it('inserts a plain link for non-image files', async () => {
+    const uploadFn = vi.fn().mockResolvedValue({ url: 'https://cdn.example.com/doc.pdf' });
+    const { handlers, ta } = makeDeps({
+      options: { uploadHandler: { upload: uploadFn } },
+    });
+    ta.value = '';
+    ta.setSelectionRange(0, 0);
+
+    await handlers.uploadFile(new File(['pdf'], 'doc.pdf', { type: 'application/pdf' }));
+
+    expect(ta.value).toContain('doc.pdf');
+    expect(ta.value).toContain('https://cdn.example.com/doc.pdf');
+    expect(ta.value).not.toContain('[* ');
+  });
+
+  it('uses unique placeholders for concurrent uploads', async () => {
+    const resolvers: Array<(v: { url: string }) => void> = [];
+    const uploadFn = vi.fn().mockImplementation(
+      () => new Promise((r) => { resolvers.push(r); }),
+    );
+    const { handlers, ta } = makeDeps({
+      options: { uploadHandler: { upload: uploadFn } },
+    });
+    ta.value = '';
+    ta.setSelectionRange(0, 0);
+
+    const p1 = handlers.uploadFile(new File(['a'], 'a.jpg', { type: 'image/jpeg' }));
+    ta.setSelectionRange(ta.value.length, ta.value.length);
+    const p2 = handlers.uploadFile(new File(['b'], 'b.jpg', { type: 'image/jpeg' }));
+
+    resolvers[1]({ url: 'https://cdn.example.com/b.jpg' });
+    resolvers[0]({ url: 'https://cdn.example.com/a.jpg' });
+    await Promise.all([p1, p2]);
+
+    expect(ta.value).toContain('https://cdn.example.com/a.jpg');
+    expect(ta.value).toContain('https://cdn.example.com/b.jpg');
+    expect(ta.value).not.toContain('Uploading');
+  });
+});
