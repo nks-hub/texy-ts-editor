@@ -482,13 +482,16 @@ export class TexyParser {
     }
 
     // 5. Links: "text":URL — extract before HTML escaping (quotes are significant)
+    // An asterisk may sit inside a URL, but one that closes emphasis must stay
+    // out of it: **"text":URL** would otherwise eat the closing ** and leave the
+    // opening one as literal text.
     src = src.replace(
-      /"([^"]+?)":((?:https?:\/\/|ftp:\/\/|mailto:)\S+)/g,
+      /"([^"]+?)":((?:https?:\/\/|ftp:\/\/|mailto:)(?:[^\s*]|\*(?![*\s]|$))+)/g,
       (_m, linkText, url) => ph(`<a href="${this.escapeHtml(url)}">${this.escapeHtml(linkText)}</a>`),
     );
     // Links with relative URLs: "text":path
     src = src.replace(
-      /"([^"]+?)":(\S+)/g,
+      /"([^"]+?)":((?:[^\s*]|\*(?![*\s]|$))+)/g,
       (_m, linkText, url) => ph(`<a href="${this.escapeHtml(url)}">${this.escapeHtml(linkText)}</a>`),
     );
 

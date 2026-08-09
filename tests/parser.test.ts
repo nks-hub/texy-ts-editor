@@ -93,6 +93,31 @@ describe('TexyParser: links', () => {
     expect(result).toContain('<a href="/about">stránka</a>');
   });
 
+  it('keeps the closing ** out of the URL when bold ends with a link', () => {
+    const result = parseInline('**"Diskuze":https://diskuze.chatujme.cz/**');
+    expect(result).toContain('<a href="https://diskuze.chatujme.cz/">Diskuze</a>');
+    expect(result).toContain('<strong>');
+    expect(result).not.toContain('**');
+  });
+
+  it('keeps the closing ** out of a relative URL too', () => {
+    const result = parseInline('**"Nastavení":/nastaveni**');
+    expect(result).toContain('<a href="/nastaveni">Nastavení</a>');
+    expect(result).toContain('<strong>');
+    expect(result).not.toContain('**');
+  });
+
+  it('keeps the closing * out of the URL when italic ends with a link', () => {
+    const result = parseInline('*"Diskuze":https://diskuze.chatujme.cz/*');
+    expect(result).toContain('<a href="https://diskuze.chatujme.cz/">Diskuze</a>');
+    expect(result).toContain('<em>');
+  });
+
+  it('still allows an asterisk inside a URL', () => {
+    const result = parseInline('"hledat":https://example.com/a*b?q=1');
+    expect(result).toContain('<a href="https://example.com/a*b?q=1">hledat</a>');
+  });
+
   it('auto-links bare URLs', () => {
     const result = parseInline('viz https://example.com tady');
     expect(result).toContain('href="https://example.com"');
