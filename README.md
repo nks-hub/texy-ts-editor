@@ -6,40 +6,33 @@
 [![Tests](https://img.shields.io/badge/tests-677%20passed-brightgreen.svg)](https://github.com/nks-hub/texy-ts-editor/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-> Modern TypeScript Texy markup editor with configurable toolbar, client-side parser, live preview, theming, and plugin system. Zero jQuery dependency. Spiritual successor to [Texyla](https://github.com/janmarek/Texyla).
+> Browser editor for the Texy markup language, written in TypeScript: configurable toolbar, client-side parser, live preview, themes and plugins, no jQuery. Successor to [Texyla](https://github.com/janmarek/Texyla).
 
-[Texy](https://texy.info) is a powerful markup language created by [David Grudl](https://davidgrudl.com/) that goes beyond Markdown with underline headings, advanced image syntax, modifiers, typography rules, and more. The original [Texyla editor](https://github.com/janmarek/Texyla) by Jan Marek provided a jQuery-based frontend for Texy, but hasn't been actively maintained for years.
+[Texy](https://texy.info) is a markup language by [David Grudl](https://davidgrudl.com/). Compared to Markdown it adds underline headings, an extended image syntax, modifiers and typography rules. Jan Marek's [Texyla editor](https://github.com/janmarek/Texyla) was the jQuery frontend for Texy and has not been maintained for years.
 
-This project is a **modern rewrite from scratch** — zero jQuery, pure TypeScript, with a client-side parser and extensible plugin system:
-
-- **TypeScript-first** — Fully typed API, exported types for all options
-- **Zero dependencies** — No jQuery, no external libraries
-- **Client-side parser** — Live preview without server round-trips
-- **Plugin system** — Extend with custom syntax (YouTube, smileys, BBCode, etc.)
-- **Themeable** — Light/dark themes via CSS custom properties
-- **Dual output** — ESM + CJS builds, tree-shakeable
+This package is a rewrite with no runtime dependencies. All options have exported types, the parser renders the preview without a server round-trip, and the build ships tree-shakeable ESM and CJS. Plugins add custom syntax such as YouTube embeds, smileys or BBCode, and themes are CSS custom properties.
 
 Try the interactive playground: **[nks-hub.github.io/texy-ts-editor](https://nks-hub.github.io/texy-ts-editor/)**
 
 ## Features
 
-- 📝 **Full Texy Syntax** - Bold, italic, headings, lists, tables, code blocks, images, links, blockquotes, modifiers
-- ✒️ **Typography** - Smart dashes, ellipsis, arrows, symbols, Czech non-breaking spaces
-- 👁️ **Live Preview** - Client-side rendering with configurable debounce
+- 📝 **Texy syntax** - Bold, italic, headings, lists, tables, code blocks, images, links, blockquotes, modifiers
+- ✒️ **Typography** - Converts dashes, ellipsis, arrows and symbols, inserts Czech non-breaking spaces
+- 👁️ **Live preview** - Renders in the browser with a configurable debounce
 - 🧰 **Toolbar** - Configurable button groups, custom buttons, keyboard shortcuts
-- ⌨️ **Keyboard Shortcuts** - Ctrl+B, Ctrl+I, Tab indent, F11 fullscreen, customizable
-- ↩️ **Undo/Redo** - Built-in history with configurable max steps
-- 🌍 **i18n** - English and Czech built-in, extensible to any language
-- 🎨 **Themes** - Light and dark presets, CSS custom properties for full control
-- 🧩 **Plugin System** - Preprocess, inline, and postprocess hooks with placeholder protection
-- 🪟 **Split View** - Side-by-side editor + preview mode
-- 🖥️ **Fullscreen** - Distraction-free editing mode
+- ⌨️ **Keyboard shortcuts** - Ctrl+B, Ctrl+I, Tab indent, F11 fullscreen, all remappable
+- ↩️ **Undo/redo** - History with a configurable step limit
+- 🌍 **i18n** - English and Czech included, other languages can be added
+- 🎨 **Themes** - Light and dark presets built on CSS custom properties
+- 🧩 **Plugin system** - Preprocess, inline, and postprocess hooks with placeholder protection
+- 🪟 **Split view** - Editor and preview side by side
+- 🖥️ **Fullscreen** - Editor fills the browser window
 
 ## Requirements
 
 - **Node.js**: 18+ recommended
 - **TypeScript**: 5.0+ (for TypeScript projects)
-- **Browsers**: Modern browsers with ES6 support
+- **Browsers**: ES6 support
 
 ## Installation
 
@@ -49,7 +42,7 @@ npm install @nks-hub/texy-editor
 
 ## Usage
 
-### Attach to a Textarea
+### Attach to a textarea
 
 ```typescript
 import { TexyEditor } from '@nks-hub/texy-editor';
@@ -62,7 +55,7 @@ const editor = new TexyEditor('#my-textarea', {
 });
 ```
 
-### Standalone Parser (No UI)
+### Standalone parser (no UI)
 
 ```typescript
 import { TexyParser } from '@nks-hub/texy-editor';
@@ -72,7 +65,7 @@ const html = parser.parse('**bold** and *italic*');
 // <p><strong>bold</strong> and <em>italic</em></p>
 ```
 
-## Editor Options
+## Editor options
 
 ```typescript
 const editor = new TexyEditor('#textarea', {
@@ -92,7 +85,7 @@ const editor = new TexyEditor('#textarea', {
 });
 ```
 
-## Supported Texy Syntax
+## Supported Texy syntax
 
 ### Inline
 
@@ -130,7 +123,7 @@ const editor = new TexyEditor('#textarea', {
 
 Extend the parser with built-in or custom plugins.
 
-### Built-in Plugins
+### Built-in plugins
 
 ```typescript
 import {
@@ -162,9 +155,9 @@ const parser = new TexyParser({
 | `smileyPlugin` | `*123*` | Numeric smiley/emoticon images |
 | `bbcodePlugin` | `[b]`, `[i]`, `[u]`, `[s]`, `[url=]`, `[color=]` | BBCode tag support |
 | `imageEmbedPlugin` | `"[* img *]":URL` | Linked image embeds |
-| `linkRedirectPlugin` | — (postprocess) | Rewrite external links through redirect service |
+| `linkRedirectPlugin` | none (postprocess) | Rewrite external links through redirect service |
 
-### Custom Plugin
+### Custom plugin
 
 ```typescript
 import type { TexyParserPlugin } from '@nks-hub/texy-editor';
@@ -189,14 +182,14 @@ const parser = new TexyParser({ plugins: [mentionPlugin] });
 | `processInline(text, ph)` | During inline pass | Generate HTML with placeholder protection |
 | `postprocess(html)` | After parsing | Transform final HTML output |
 
-## Build Outputs
+## Build outputs
 
 | File | Format | Size | Use Case |
 |------|--------|------|----------|
-| `dist/texy-editor.js` | ESM | ~66 KB | Modern bundlers (Vite, webpack, Rollup) |
+| `dist/texy-editor.js` | ESM | ~66 KB | Bundlers (Vite, webpack, Rollup) |
 | `dist/texy-editor.cjs` | CJS | ~47 KB | Node.js / `require()` |
 | `dist/texy-editor.css` | CSS | ~10 KB | Base stylesheet with theme support |
-| `dist/types/` | `.d.ts` | — | TypeScript type declarations |
+| `dist/types/` | `.d.ts` | n/a | TypeScript type declarations |
 
 ## Development
 
