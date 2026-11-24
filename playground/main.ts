@@ -11,7 +11,15 @@ function log(event: string, data?: unknown) {
   entry.className = 'log-entry';
   const time = new Date().toLocaleTimeString('cs-CZ', { hour12: false });
   const dataStr = data ? ` ${JSON.stringify(data).substring(0, 80)}` : '';
-  entry.innerHTML = `<span style="color:#6c7086">${time}</span> <span class="event-name">${event}</span><span class="event-data">${dataStr}</span>`;
+  const span = (text: string, className?: string) => {
+    const el = document.createElement('span');
+    el.textContent = text;
+    if (className) el.className = className;
+    return el;
+  };
+  const timeEl = span(time);
+  timeEl.style.color = '#6c7086';
+  entry.append(timeEl, ' ', span(event, 'event-name'), span(dataStr, 'event-data'));
   logEl.prepend(entry);
 
   // Keep max 50 entries
