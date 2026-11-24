@@ -18,6 +18,7 @@ import { DialogManager } from './DialogManager';
 import { DialogHandlers } from './DialogHandlers';
 import { TexyParser } from '../parser';
 import { getStrings } from '../i18n';
+import { isSafeUrl } from '../utils/escapeHtml';
 import type { SyntaxMode } from '../modes/SyntaxMode';
 import { TexyMode } from '../modes/TexyMode';
 import type { PreviewRenderer } from '../types';
@@ -551,8 +552,8 @@ export class TexyEditor implements TexyEditorAPI {
         // Client-side Markdown renderer
         this.previewContent.innerHTML = `<div class="te-preview-rendered">${this.markdownPreview.render(value)}</div>`;
       } else {
-        // Client-side Texy parser
-        this.previewContent.innerHTML = `<div class="te-preview-rendered">${this.parser.parse(value)}</div>`;
+        // Client-side Texy parser; sanitized because /--html blocks pass raw HTML through
+        this.previewContent.innerHTML = `<div class="te-preview-rendered">${this.sanitizePreviewHtml(this.parser.parse(value))}</div>`;
       }
     }
   }
@@ -581,10 +582,12 @@ export class TexyEditor implements TexyEditorAPI {
 
   private sanitizePreviewHtml(html: string): string {
     const doc = new DOMParser().parseFromString(html, 'text/html');
-    doc.querySelectorAll('script,style,link[rel="import"],object,embed,iframe:not([src*="youtube.com/embed"]):not([src*="youtu.be"])').forEach((el) => el.remove());
+    // noscript, svg and math parse differently once reinserted, which lets markup escape the sanitizer
+    doc.querySelectorAll('script,style,link,meta,base,noscript,svg,math,object,embed,iframe:not([src*="youtube.com/embed"]):not([src*="youtu.be"])').forEach((el) => el.remove());
+    const urlAttrs = ['href', 'src', 'xlink:href', 'action', 'formaction'];
     doc.querySelectorAll('*').forEach((el) => {
       for (const attr of Array.from(el.attributes)) {
-        if (attr.name.startsWith('on') || (attr.name === 'href' && attr.value.trim().toLowerCase().startsWith('javascript:'))) {
+        if (attr.name.startsWith('on') || attr.name === 'srcdoc' || (urlAttrs.includes(attr.name) && !isSafeUrl(attr.value))) {
           el.removeAttribute(attr.name);
         }
       }

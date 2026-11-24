@@ -1,5 +1,5 @@
 import type { TexyParserOptions, TexyParserPlugin } from '../types';
-import { escapeHtml } from '../utils/escapeHtml';
+import { escapeHtml, sanitizeUrl } from '../utils/escapeHtml';
 
 /**
  * Client-side Texy markup parser.
@@ -453,7 +453,7 @@ export class TexyParser {
     let src = text;
 
     // 1. NoTexy zones: ''text'' — extract first to protect content
-    src = src.replace(/''(.+?)''/g, (_m, content) => ph(content));
+    src = src.replace(/''(.+?)''/g, (_m, content) => ph(this.escapeHtml(content)));
 
     // 2. Inline code: `code` — extract to protect from further parsing
     src = src.replace(/`([^`]+)`/g, (_m, content) => ph(`<code>${this.escapeHtml(content)}</code>`));
@@ -487,12 +487,12 @@ export class TexyParser {
     // opening one as literal text.
     src = src.replace(
       /"([^"]+?)":((?:https?:\/\/|ftp:\/\/|mailto:)(?:[^\s*]|\*(?![*\s]|$))+)/g,
-      (_m, linkText, url) => ph(`<a href="${this.escapeHtml(url)}">${this.escapeHtml(linkText)}</a>`),
+      (_m, linkText, url) => ph(`<a href="${sanitizeUrl(url)}">${this.escapeHtml(linkText)}</a>`),
     );
     // Links with relative URLs: "text":path
     src = src.replace(
       /"([^"]+?)":((?:[^\s*]|\*(?![*\s]|$))+)/g,
-      (_m, linkText, url) => ph(`<a href="${this.escapeHtml(url)}">${this.escapeHtml(linkText)}</a>`),
+      (_m, linkText, url) => ph(`<a href="${sanitizeUrl(url)}">${this.escapeHtml(linkText)}</a>`),
     );
 
     // 6. Acronyms: word((title)) — extract before HTML escaping
@@ -718,7 +718,7 @@ export class TexyParser {
     let tag = `<img ${attrs.join(' ')}>`;
 
     if (linkUrl) {
-      tag = `<a href="${this.escapeHtml(linkUrl)}">${tag}</a>`;
+      tag = `<a href="${sanitizeUrl(linkUrl)}">${tag}</a>`;
     }
 
     if (caption) {

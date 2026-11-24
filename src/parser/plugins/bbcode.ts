@@ -2,6 +2,44 @@ import type { TexyParserPlugin } from '../../types';
 import { escapeHtml, sanitizeUrl } from '../../utils/escapeHtml';
 
 /**
+ * Replaces every [tag]content[/tag] (or [tag=param]content[/tag]) pair, case-insensitively,
+ * pairing each opening tag with the nearest closing one.
+ *
+ * Scans by index instead of /\[tag\]([\s\S]*?)\[\/tag\]/: that regex rescans the rest of
+ * the input from every unclosed opening tag, which is quadratic on hostile input.
+ */
+function replacePairs(
+  text: string,
+  tag: string,
+  withParam: boolean,
+  render: (content: string, param: string) => string,
+): string {
+  const open = new RegExp(`\\[${tag}${withParam ? '=' : '\\]'}`, 'gi');
+  const close = new RegExp(`\\[/${tag}\\]`, 'gi');
+  let out = '';
+  let done = 0;
+  let match: RegExpExecArray | null;
+  while ((match = open.exec(text))) {
+    let contentStart = open.lastIndex;
+    let param = '';
+    if (withParam) {
+      const paramEnd = text.indexOf(']', contentStart);
+      if (paramEnd === -1) break;
+      param = text.slice(contentStart, paramEnd);
+      if (!param) continue;
+      contentStart = paramEnd + 1;
+    }
+    close.lastIndex = contentStart;
+    const end = close.exec(text);
+    // No closing tag after this opening one means none after any later one either
+    if (!end) break;
+    out += text.slice(done, match.index) + render(text.slice(contentStart, end.index), param);
+    done = open.lastIndex = close.lastIndex;
+  }
+  return out + text.slice(done);
+}
+
+/**
  * BBCode plugin for TexyParser.
  *
  * Converts common BBCode tags to HTML:
@@ -19,43 +57,21 @@ export function bbcodePlugin(): TexyParserPlugin {
     name: 'bbcode',
 
     processInline(text: string, placeholder: (html: string) => string): string {
-      // [b]text[/b]
-      text = text.replace(/\[b\]([\s\S]*?)\[\/b\]/gi, (_m, content) =>
-        placeholder(`<strong>${content}</strong>`),
+      const simple: Array<[string, string]> = [['b', 'strong'], ['i', 'em'], ['u', 'u'], ['s', 'del']];
+      for (const [tag, element] of simple) {
+        text = replacePairs(text, tag, false, (content) =>
+          placeholder(`<${element}>${escapeHtml(content)}</${element}>`),
+        );
+      }
+
+      text = replacePairs(text, 'url', true, (content, url) =>
+        placeholder(`<a href="${sanitizeUrl(url)}">${escapeHtml(content)}</a>`),
       );
 
-      // [i]text[/i]
-      text = text.replace(/\[i\]([\s\S]*?)\[\/i\]/gi, (_m, content) =>
-        placeholder(`<em>${content}</em>`),
-      );
-
-      // [u]text[/u]
-      text = text.replace(/\[u\]([\s\S]*?)\[\/u\]/gi, (_m, content) =>
-        placeholder(`<u>${content}</u>`),
-      );
-
-      // [s]text[/s]
-      text = text.replace(/\[s\]([\s\S]*?)\[\/s\]/gi, (_m, content) =>
-        placeholder(`<del>${content}</del>`),
-      );
-
-      // [url=URL]text[/url]
-      text = text.replace(
-        /\[url=([^\]]+)\]([\s\S]*?)\[\/url\]/gi,
-        (_m, url, content) => {
-          const safeUrl = sanitizeUrl(url);
-          return placeholder(`<a href="${safeUrl}">${escapeHtml(content)}</a>`);
-        },
-      );
-
-      // [color=COLOR]text[/color]
-      text = text.replace(
-        /\[color=([^\]]+)\]([\s\S]*?)\[\/color\]/gi,
-        (_m, color, content) => {
-          const safeColor = escapeHtml(color.replace(/[;"'{}()]/g, ''));
-          return placeholder(`<span style="color:${safeColor}">${escapeHtml(content)}</span>`);
-        },
-      );
+      text = replacePairs(text, 'color', true, (content, color) => {
+        const safeColor = escapeHtml(color.replace(/[;"'{}()]/g, ''));
+        return placeholder(`<span style="color:${safeColor}">${escapeHtml(content)}</span>`);
+      });
 
       return text;
     },

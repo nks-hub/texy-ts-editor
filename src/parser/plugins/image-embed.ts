@@ -32,8 +32,10 @@ export function imageEmbedPlugin(options: ImageEmbedPluginOptions = {}): TexyPar
       if (!enableLinkedImages) return text;
 
       // Convert linked images: "[* URL *]":LINK → {{imglink:URL|LINK}}
+      // The alt text cannot contain a quote (it would end the "…" link text), which also
+      // keeps an unclosed alt from scanning across every later linked image.
       text = text.replace(
-        /"\[\*\s+(\S+?)(?:\s+\.\(([^)]*)\))?\s*\*?\]"\s*:\s*(\S+)/g,
+        /"\[\*\s+(\S+?)(?:\s+\.\(([^)"]*)\))?\s*\*?\]"\s*:\s*(\S+)/g,
         (_m, imgUrl, alt, linkUrl) => {
           const altPart = alt ? `|alt:${alt}` : '';
           return `{{imglink:${imgUrl}${altPart}|${linkUrl}}}`;
@@ -44,9 +46,10 @@ export function imageEmbedPlugin(options: ImageEmbedPluginOptions = {}): TexyPar
     },
 
     processInline(text: string, placeholder: (html: string) => string): string {
-      // Expand {{imglink:URL|alt:TEXT|LINK}} placeholders
+      // Expand {{imglink:URL|alt:TEXT|LINK}} placeholders. URL and LINK stop at "{" so a
+      // placeholder without its closing }} cannot be rescanned from every later one.
       text = text.replace(
-        /\{\{imglink:(\S+?)(?:\|alt:([^|]*))?\|(\S+)\}\}/g,
+        /\{\{imglink:([^\s|{]+)(?:\|alt:([^|]*))?\|([^\s{]+)\}\}/g,
         (_m, imgUrl, alt, linkUrl) => {
           const altAttr = alt ? ` alt="${escapeHtml(alt)}"` : ' alt=""';
           const safeLinkUrl = sanitizeUrl(linkUrl);

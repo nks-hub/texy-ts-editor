@@ -17,9 +17,11 @@ export function escapeHtml(text: string): string {
  * Returns false for javascript:, data:, vbscript:, etc.
  */
 export function isSafeUrl(url: string): boolean {
-  const trimmed = url.trim().toLowerCase();
-  if (/^[a-z][a-z0-9+.-]*:/.test(trimmed)) {
-    return /^(https?|mailto|tel|ftp):/.test(trimmed);
+  // Browsers drop tabs and newlines anywhere in a URL and control chars or spaces in
+  // front of it, so "java\tscript:" and "\x01javascript:" still run as javascript:.
+  const normalized = url.replace(/[\t\n\r]/g, '').replace(/^[\s\u0000-\u001f]+/, '').toLowerCase();
+  if (/^[a-z][a-z0-9+.-]*:/.test(normalized)) {
+    return /^(https?|mailto|tel|ftp):/.test(normalized);
   }
   // Relative URLs, anchors, protocol-relative are allowed
   return true;
